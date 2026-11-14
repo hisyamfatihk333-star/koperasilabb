@@ -1,0 +1,2063 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>KoperasiLab — Simulasikan Keuanganmu, Siapkan Masa Depanmu</title>
+
+  <!-- Google Fonts: Poppins & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Chart.js untuk Visualisasi Data Interaktif -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            emeraldPrimary: '#087F5B',
+            emeraldDark: '#066045',
+            darkNavy: '#142D4E',
+            softMint: '#E6F4EF',
+            goldAccent: '#E5B454',
+            lightGray: '#F3F5F7',
+            riskRed: '#DC5555',
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Poppins', 'sans-serif'],
+          },
+          boxShadow: {
+            'soft': '0 4px 20px -2px rgba(20, 45, 78, 0.06)',
+            'card': '0 2px 12px rgba(20, 45, 78, 0.05)',
+            'float': '0 10px 25px -5px rgba(8, 127, 91, 0.25)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #E2E8F0;
+      font-family: 'Inter', sans-serif;
+      color: #142D4E;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    h1, h2, h3, h4, .font-heading {
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .page-section {
+      animation: fadeIn 0.22s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-runnable-track {
+      background: #E6F4EF;
+      height: 8px;
+      border-radius: 999px;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      margin-top: -5px;
+      background-color: #087F5B;
+      height: 18px;
+      width: 18px;
+      border-radius: 50%;
+      border: 2px solid #FFFFFF;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body class="flex justify-center min-h-screen bg-slate-200">
+
+  <!-- Mobile App Viewport Frame (Android Smartphone Aspect Ratio) -->
+  <div id="app-frame" class="relative w-full max-w-[430px] bg-white min-h-screen shadow-2xl flex flex-col overflow-x-hidden">
+
+    <!-- ========================================== -->
+    <!-- 1. ONBOARDING SCREEN                       -->
+    <!-- ========================================== -->
+    <div id="screen-onboarding" class="fixed inset-0 z-50 max-w-[430px] mx-auto bg-white flex flex-col justify-between p-6">
+      <div class="flex justify-between items-center pt-2">
+        <div class="flex items-center gap-2">
+          <div class="w-9 h-9 rounded-xl bg-emeraldPrimary flex items-center justify-center text-white font-bold shadow-sm">
+            <i data-lucide="shield-check" class="w-5 h-5"></i>
+          </div>
+          <span class="font-heading font-bold text-lg text-darkNavy tracking-tight">KoperasiLab</span>
+        </div>
+        <button onclick="finishOnboarding()" class="text-sm font-medium text-slate-500 hover:text-emeraldPrimary px-3 py-1.5 rounded-lg">
+          Lewati
+        </button>
+      </div>
+
+      <!-- Slide Content -->
+      <div id="onboarding-content" class="my-auto text-center px-2"></div>
+
+      <!-- Bottom Controls -->
+      <div class="pb-4 space-y-5">
+        <div id="onboarding-dots" class="flex justify-center gap-2"></div>
+        <div class="flex gap-3">
+          <button id="onboarding-prev-btn" onclick="prevOnboardingSlide()" class="hidden py-3.5 px-4 bg-lightGray hover:bg-slate-200 text-darkNavy font-heading font-semibold rounded-2xl transition active:scale-[0.98] items-center justify-center">
+            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+          </button>
+          <button id="onboarding-next-btn" onclick="nextOnboardingSlide()" class="flex-1 py-3.5 px-6 bg-emeraldPrimary hover:bg-emeraldDark text-white font-heading font-semibold rounded-2xl shadow-float transition active:scale-[0.98] flex items-center justify-center gap-2">
+            <span>Lanjutkan</span>
+            <i data-lucide="arrow-right" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 2. AUTH SCREEN (LOGIN / REGISTER)          -->
+    <!-- ========================================== -->
+    <div id="screen-auth" class="hidden fixed inset-0 z-40 max-w-[430px] mx-auto bg-white flex flex-col justify-between p-6 overflow-y-auto">
+      <div class="pt-2">
+        <!-- Back to Onboarding -->
+        <button onclick="backToOnboarding()" class="mb-4 inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-darkNavy py-1.5 px-2.5 rounded-lg bg-lightGray transition">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i>
+          <span>Kembali ke Pengenalan</span>
+        </button>
+
+        <div class="flex items-center gap-2.5 mb-6">
+          <div class="w-11 h-11 rounded-2xl bg-emeraldPrimary flex items-center justify-center text-white shadow-soft">
+            <i data-lucide="shield-check" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <h1 class="font-heading font-bold text-xl text-darkNavy">KoperasiLab</h1>
+            <p class="text-xs text-slate-500">Simulasikan Keuanganmu, Siapkan Masa Depanmu.</p>
+          </div>
+        </div>
+
+        <!-- Tabs Login / Daftar -->
+        <div class="grid grid-cols-2 bg-lightGray p-1 rounded-xl mb-6">
+          <button id="tab-login" onclick="switchAuthMode('login')" class="py-2.5 text-sm font-semibold rounded-lg bg-white text-darkNavy shadow-xs transition">Masuk</button>
+          <button id="tab-register" onclick="switchAuthMode('register')" class="py-2.5 text-sm font-medium rounded-lg text-slate-500 transition">Daftar Baru</button>
+        </div>
+
+        <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
+          <div id="auth-name-field" class="hidden">
+            <label class="block text-xs font-semibold text-darkNavy mb-1.5">Nama Lengkap</label>
+            <input type="text" id="auth-name" placeholder="Contoh: Nadia Putri" class="w-full px-4 py-3 rounded-xl bg-lightGray border border-transparent focus:border-emeraldPrimary focus:bg-white text-sm outline-none transition" />
+          </div>
+
+          <div id="auth-role-field" class="hidden">
+            <label class="block text-xs font-semibold text-darkNavy mb-1.5">Profil Kamu</label>
+            <select id="auth-role" class="w-full px-4 py-3 rounded-xl bg-lightGray border border-transparent focus:border-emeraldPrimary focus:bg-white text-sm outline-none transition">
+              <option value="Mahasiswa">Mahasiswa</option>
+              <option value="Wirausaha Pemula">Wirausaha Pemula</option>
+              <option value="Generasi Muda / Pekerja">Generasi Muda / Pekerja</option>
+              <option value="Calon Anggota Koperasi">Calon Anggota Koperasi</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-darkNavy mb-1.5">Email</label>
+            <input type="email" id="auth-email" value="nadia.mahasiswa@kampus.ac.id" required class="w-full px-4 py-3 rounded-xl bg-lightGray border border-transparent focus:border-emeraldPrimary focus:bg-white text-sm outline-none transition" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-darkNavy mb-1.5">Kata Sandi</label>
+            <input type="password" id="auth-password" value="••••••••" required class="w-full px-4 py-3 rounded-xl bg-lightGray border border-transparent focus:border-emeraldPrimary focus:bg-white text-sm outline-none transition" />
+          </div>
+
+          <div class="bg-softMint/70 border border-emeraldPrimary/20 rounded-xl p-3 flex items-start gap-2.5">
+            <i data-lucide="lock" class="w-4 h-4 text-emeraldPrimary shrink-0 mt-0.5"></i>
+            <p class="text-[11px] text-darkNavy/80 leading-relaxed">
+              <strong>Privasi Terjamin:</strong> KoperasiLab tidak pernah meminta akses rekening bank. Semua simulasi menggunakan input mandiri untuk tujuan edukasi.
+            </p>
+          </div>
+
+          <button type="submit" id="auth-submit-btn" class="w-full py-3.5 bg-emeraldPrimary hover:bg-emeraldDark text-white font-heading font-semibold rounded-2xl shadow-float transition active:scale-[0.98]">
+            Masuk ke KoperasiLab
+          </button>
+        </form>
+      </div>
+
+      <div class="pt-6 pb-2 text-center">
+        <button onclick="demoQuickLogin()" class="text-xs font-semibold text-emeraldPrimary hover:underline">
+          Atau masuk langsung dengan Akun Demo Mahasiswa →
+        </button>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 3. MAIN APP SHELL (HEADER + CONTENT + NAV) -->
+    <!-- ========================================== -->
+    <div id="main-app-shell" class="hidden flex-1 flex flex-col pb-24">
+
+      <!-- TOP BAR DENGAN TOMBOL BACK DINAMIS -->
+      <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-100 px-5 py-3.5 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <!-- Tombol Back muncul otomatis saat tidak berada di halaman Home -->
+          <button id="header-back-btn" onclick="goBack()" class="hidden p-2 rounded-xl bg-lightGray hover:bg-softMint text-darkNavy transition active:scale-95" title="Kembali">
+            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+          </button>
+
+          <div id="header-brand-logo" class="w-9 h-9 rounded-xl bg-emeraldPrimary flex items-center justify-center text-white shadow-xs">
+            <i data-lucide="shield-check" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <span id="header-title" class="font-heading font-bold text-base text-darkNavy block leading-none">KoperasiLab</span>
+            <span id="header-subtitle" class="text-[10px] text-slate-400 font-medium">Simulasi Keuangan Edukatif</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <!-- Notification Bell -->
+          <button onclick="openModal('modal-notifications')" class="relative p-2.5 rounded-xl bg-lightGray hover:bg-softMint text-darkNavy transition">
+            <i data-lucide="bell" class="w-5 h-5"></i>
+            <span id="notif-badge" class="absolute top-2 right-2 w-2 h-2 rounded-full bg-riskRed ring-2 ring-white"></span>
+          </button>
+          <!-- Help Center -->
+          <button onclick="openModal('modal-help')" class="p-2.5 rounded-xl bg-lightGray hover:bg-softMint text-darkNavy transition">
+            <i data-lucide="help-circle" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- DYNAMIC CONTENT CONTAINER -->
+      <main id="main-content" class="flex-1 px-5 pt-4 space-y-5">
+
+        <!-- ======================================== -->
+        <!-- VIEW 1: HOME (DASHBOARD UTAMA)           -->
+        <!-- ======================================== -->
+        <section id="view-home" class="page-section space-y-5">
+          <!-- Greeting -->
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-xs text-slate-500 font-medium" id="home-role-label">Mahasiswa • Tingkat Pemula</p>
+              <h1 class="font-heading font-bold text-xl text-darkNavy" id="home-greeting">Halo, Selamat Datang! 👋</h1>
+            </div>
+            <div class="px-3 py-1.5 rounded-full bg-softMint text-emeraldPrimary text-xs font-semibold flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emeraldPrimary animate-pulse"></span>
+              <span>Mode Edukasi</span>
+            </div>
+          </div>
+
+          <!-- Financial Resilience Hero Card -->
+          <div class="bg-darkNavy text-white rounded-3xl p-5 shadow-soft relative overflow-hidden">
+            <div class="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-emeraldPrimary/20 blur-xl"></div>
+            <div class="absolute -left-6 -bottom-10 w-28 h-28 rounded-full bg-goldAccent/15 blur-lg"></div>
+
+            <div class="relative z-10">
+              <div class="flex justify-between items-start mb-3">
+                <div>
+                  <span class="text-xs text-slate-300 font-medium">Indikator Ketahanan Keuangan</span>
+                  <div class="flex items-baseline gap-2 mt-1">
+                    <span id="home-resilience-score" class="font-heading font-extrabold text-3xl text-white">76</span>
+                    <span class="text-xs text-slate-300">/ 100 Poin</span>
+                  </div>
+                </div>
+                <span id="home-resilience-badge" class="px-3 py-1 rounded-full bg-emeraldPrimary text-white text-xs font-semibold">
+                  Cukup Tangguh
+                </span>
+              </div>
+
+              <div class="w-full h-2.5 bg-white/15 rounded-full overflow-hidden mb-3">
+                <div id="home-resilience-bar" class="h-full bg-goldAccent rounded-full transition-all duration-500" style="width: 76%"></div>
+              </div>
+
+              <p id="home-resilience-summary" class="text-xs text-slate-200 leading-relaxed mb-4">
+                Sisa arus kasmu positif (+Rp 1.150.000/bln), namun dana darurat baru mencukupi 1,4 bulan pengeluaran.
+              </p>
+
+              <div class="grid grid-cols-2 gap-2.5 pt-3 border-t border-white/10 mb-4">
+                <div>
+                  <span class="text-[11px] text-slate-300 block">Pendapatan Bulanan</span>
+                  <span id="home-income-val" class="font-heading font-semibold text-sm text-white">Rp 3.500.000</span>
+                </div>
+                <div>
+                  <span class="text-[11px] text-slate-300 block">Pengeluaran + Cicilan</span>
+                  <span id="home-expense-val" class="font-heading font-semibold text-sm text-goldAccent">Rp 2.350.000</span>
+                </div>
+              </div>
+
+              <button onclick="navigateTo('simulasi')" class="w-full py-3 bg-emeraldPrimary hover:bg-emeraldDark text-white font-heading font-semibold text-sm rounded-2xl shadow-float transition active:scale-[0.98] flex items-center justify-center gap-2">
+                <i data-lucide="play-circle" class="w-4 h-4"></i>
+                <span>Mulai Simulasi</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Grafik Pendapatan vs Pengeluaran -->
+          <div class="bg-white border border-slate-100 rounded-3xl p-4 shadow-card">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h2 class="font-heading font-bold text-sm text-darkNavy">Arus Kas Bulanan</h2>
+                <p class="text-[11px] text-slate-400">Perbandingan pemasukan & pengeluaran</p>
+              </div>
+              <button onclick="navigateTo('keuangan')" class="text-xs font-semibold text-emeraldPrimary hover:underline">
+                Ubah Data
+              </button>
+            </div>
+            <div class="h-44 w-full">
+              <canvas id="homeCashflowChart"></canvas>
+            </div>
+          </div>
+
+          <!-- 6 MENU FITUR UTAMA -->
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="font-heading font-bold text-base text-darkNavy">6 Fitur Utama KoperasiLab</h2>
+              <span class="text-[11px] text-slate-400">Pilih langkahmu</span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <!-- 1. Ukuran Kondisi Keuangan -->
+              <button onclick="navigateTo('keuangan')" class="text-left p-4 rounded-2xl bg-softMint/70 hover:bg-softMint border border-emeraldPrimary/15 transition active:scale-[0.98]">
+                <div class="w-10 h-10 rounded-xl bg-emeraldPrimary text-white flex items-center justify-center mb-3 shadow-xs">
+                  <i data-lucide="wallet" class="w-5 h-5"></i>
+                </div>
+                <h3 class="font-heading font-bold text-xs text-darkNavy mb-1">1. Kondisi Keuangan</h3>
+                <p class="text-[11px] text-slate-600 leading-snug">Petakan arus kas, simpanan & cicilan awal.</p>
+              </button>
+
+              <!-- 2. Jalankan Simulasi -->
+              <button onclick="navigateTo('simulasi')" class="text-left p-4 rounded-2xl bg-lightGray hover:bg-slate-200/70 border border-slate-200/60 transition active:scale-[0.98]">
+                <div class="w-10 h-10 rounded-xl bg-darkNavy text-white flex items-center justify-center mb-3 shadow-xs">
+                  <i data-lucide="activity" class="w-5 h-5"></i>
+                </div>
+                <h3 class="font-heading font-bold text-xs text-darkNavy mb-1">2. Jalankan Simulasi</h3>
+                <p class="text-[11px] text-slate-600 leading-snug">Uji skenario krisis & ketahanan kasmu.</p>
+              </button>
+
+              <!-- 3. Risiko Pembiayaan -->
+              <button onclick="navigateTo('risiko')" class="text-left p-4 rounded-2xl bg-lightGray hover:bg-slate-200/70 border border-slate-200/60 transition active:scale-[0.98]">
+                <div class="w-10 h-10 rounded-xl bg-riskRed text-white flex items-center justify-center mb-3 shadow-xs">
+                  <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+                </div>
+                <h3 class="font-heading font-bold text-xs text-darkNavy mb-1">3. Risiko Pembiayaan</h3>
+                <p class="text-[11px] text-slate-600 leading-snug">Cek batas aman cicilan & potensi gagal bayar.</p>
+              </button>
+
+              <!-- 4. Kaji Kelayakan Usaha -->
+              <button onclick="navigateTo('usaha')" class="text-left p-4 rounded-2xl bg-lightGray hover:bg-slate-200/70 border border-slate-200/60 transition active:scale-[0.98]">
+                <div class="w-10 h-10 rounded-xl bg-goldAccent text-darkNavy flex items-center justify-center mb-3 shadow-xs">
+                  <i data-lucide="store" class="w-5 h-5"></i>
+                </div>
+                <h3 class="font-heading font-bold text-xs text-darkNavy mb-1">4. Kelayakan Usaha</h3>
+                <p class="text-[11px] text-slate-600 leading-snug">Hitung BEP, modal awal & proyeksi laba.</p>
+              </button>
+
+              <!-- 5. Arahkan Pembelajaran -->
+              <button onclick="navigateTo('edukasi')" class="text-left p-4 rounded-2xl bg-lightGray hover:bg-slate-200/70 border border-slate-200/60 transition active:scale-[0.98]">
+                <div class="w-10 h-10 rounded-xl bg-emeraldPrimary/90 text-white flex items-center justify-center mb-3 shadow-xs">
+                  <i data-lucide="graduation-cap" class="w-5 h-5"></i>
+                </div>
+                <h3 class="font-heading font-bold text-xs text-darkNavy mb-1">5. Belajar Adaptif</h3>
+                <p class="text-[11px] text-slate-600 leading-snug">Materi & kuis sesuai kelemahan simulasi.</p>
+              </button>
+
+              <!-- 6. Sambungkan ke Koperasi -->
+              <button onclick="navigateTo('koperasi')" class="text-left p-4 rounded-2xl bg-softMint/70 hover:bg-softMint border border-emeraldPrimary/15 transition active:scale-[0.98]">
+                <div class="w-10 h-10 rounded-xl bg-darkNavy text-goldAccent flex items-center justify-center mb-3 shadow-xs">
+                  <i data-lucide="handshake" class="w-5 h-5"></i>
+                </div>
+                <h3 class="font-heading font-bold text-xs text-darkNavy mb-1">6. Mitra Koperasi</h3>
+                <p class="text-[11px] text-slate-600 leading-snug">Konsultasi & pendampingan koperasi muda.</p>
+              </button>
+            </div>
+          </div>
+
+          <!-- Artikel & Tips Edukasi Finansial -->
+          <div class="pb-2">
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="font-heading font-bold text-base text-darkNavy">Tips Finansial Pilihan</h2>
+              <button onclick="navigateTo('edukasi')" class="text-xs font-semibold text-emeraldPrimary">Lihat Semua</button>
+            </div>
+
+            <div class="space-y-3">
+              <div onclick="openArticleModal(0)" class="p-3.5 rounded-2xl bg-white border border-slate-100 shadow-card flex items-center gap-3.5 cursor-pointer hover:border-emeraldPrimary/40 transition">
+                <div class="w-12 h-12 rounded-2xl bg-softMint text-emeraldPrimary flex items-center justify-center shrink-0">
+                  <i data-lucide="piggy-bank" class="w-6 h-6"></i>
+                </div>
+                <div class="flex-1">
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-emeraldPrimary">Dana Darurat</span>
+                  <h4 class="font-heading font-semibold text-xs text-darkNavy mt-0.5">Aturan 3x Pengeluaran untuk Mahasiswa & Freelancer</h4>
+                  <p class="text-[11px] text-slate-400 mt-0.5">Baca 2 menit • Tingkat Pemula</p>
+                </div>
+                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+              </div>
+
+              <div onclick="openArticleModal(1)" class="p-3.5 rounded-2xl bg-white border border-slate-100 shadow-card flex items-center gap-3.5 cursor-pointer hover:border-emeraldPrimary/40 transition">
+                <div class="w-12 h-12 rounded-2xl bg-amber-50 text-goldAccent flex items-center justify-center shrink-0">
+                  <i data-lucide="shield-alert" class="w-6 h-6"></i>
+                </div>
+                <div class="flex-1">
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-amber-600">Risiko Cicilan</span>
+                  <h4 class="font-heading font-semibold text-xs text-darkNavy mt-0.5">Kenapa Rasio Cicilan Maksimal 30% dari Pendapatan?</h4>
+                  <p class="text-[11px] text-slate-400 mt-0.5">Baca 3 menit • Wajib Tahu</p>
+                </div>
+                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================================== -->
+        <!-- VIEW 2: FITUR 1 - UKURAN KONDISI KEUANGAN-->
+        <!-- ======================================== -->
+        <section id="view-keuangan" class="hidden page-section space-y-5">
+          <div class="bg-softMint rounded-3xl p-4 border border-emeraldPrimary/15">
+            <h2 class="font-heading font-bold text-base text-darkNavy">Pemetaan Kondisi Keuangan</h2>
+            <p class="text-xs text-slate-600 mt-1">Masukkan data secara mandiri. Data ini menjadi dasar seluruh simulasi ketahananmu.</p>
+          </div>
+
+          <!-- Form Input Mandiri -->
+          <div class="bg-white border border-slate-100 rounded-3xl p-4 shadow-card space-y-3.5">
+            <div>
+              <label class="block text-xs font-semibold text-darkNavy mb-1">Pendapatan Bulanan (Rp)</label>
+              <input type="number" id="fin-income" value="3500000" oninput="recalculateFinance()" class="w-full px-3.5 py-2.5 rounded-xl bg-lightGray text-sm font-semibold text-darkNavy outline-none focus:ring-2 focus:ring-emeraldPrimary" />
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-darkNavy mb-1">Pengeluaran Rutin Bulanan (Rp)</label>
+              <input type="number" id="fin-expense" value="1900000" oninput="recalculateFinance()" class="w-full px-3.5 py-2.5 rounded-xl bg-lightGray text-sm font-semibold text-darkNavy outline-none focus:ring-2 focus:ring-emeraldPrimary" />
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-darkNavy mb-1">Jumlah Simpanan (Rp)</label>
+                <input type="number" id="fin-savings" value="3300000" oninput="recalculateFinance()" class="w-full px-3.5 py-2.5 rounded-xl bg-lightGray text-sm font-semibold text-darkNavy outline-none focus:ring-2 focus:ring-emeraldPrimary" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-darkNavy mb-1">Total Kewajiban/Utang (Rp)</label>
+                <input type="number" id="fin-debt" value="2700000" oninput="recalculateFinance()" class="w-full px-3.5 py-2.5 rounded-xl bg-lightGray text-sm font-semibold text-darkNavy outline-none focus:ring-2 focus:ring-emeraldPrimary" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-darkNavy mb-1">Cicilan per Bulan (Rp)</label>
+                <input type="number" id="fin-installment" value="450000" oninput="recalculateFinance()" class="w-full px-3.5 py-2.5 rounded-xl bg-lightGray text-sm font-semibold text-darkNavy outline-none focus:ring-2 focus:ring-emeraldPrimary" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-darkNavy mb-1">Tgl Jatuh Tempo</label>
+                <select id="fin-duedate" onchange="recalculateFinance()" class="w-full px-3 py-2.5 rounded-xl bg-lightGray text-sm font-semibold text-darkNavy outline-none focus:ring-2 focus:ring-emeraldPrimary">
+                  <option value="Tanggal 5">Tanggal 5</option>
+                  <option value="Tanggal 10">Tanggal 10</option>
+                  <option value="Tanggal 15" selected>Tanggal 15</option>
+                  <option value="Tanggal 25">Tanggal 25</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hasil Analisis Keuangan -->
+          <div class="bg-darkNavy text-white rounded-3xl p-5 shadow-soft space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-slate-300">Ringkasan Arus Kas</span>
+              <span id="fin-status-badge" class="px-2.5 py-1 rounded-full bg-emeraldPrimary text-[11px] font-semibold">Surplus Sehat</span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div class="bg-white/10 rounded-2xl p-3">
+                <span class="text-[11px] text-slate-300 block">Total Pengeluaran</span>
+                <span id="res-total-expense" class="font-heading font-bold text-base text-goldAccent">Rp 2.350.000</span>
+              </div>
+              <div class="bg-white/10 rounded-2xl p-3">
+                <span class="text-[11px] text-slate-300 block">Sisa Arus Kas</span>
+                <span id="res-net-cashflow" class="font-heading font-bold text-base text-emerald-300">+Rp 1.150.000</span>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs mb-1.5">
+                <span class="text-slate-300">Rasio Pengeluaran terhadap Pendapatan</span>
+                <span id="res-expense-ratio" class="font-bold text-white">67.1%</span>
+              </div>
+              <div class="w-full h-2.5 bg-white/15 rounded-full overflow-hidden">
+                <div id="res-expense-bar" class="h-full bg-emeraldPrimary rounded-full transition-all" style="width: 67%"></div>
+              </div>
+            </div>
+
+            <p id="res-fin-summary" class="text-xs text-slate-200 leading-relaxed bg-white/5 p-3 rounded-2xl">
+              Kamu menyisihkan 32,9% pendapatan setiap bulan. Dana daruratmu saat ini bertahan 1,4 bulan jika tanpa pemasukan.
+            </p>
+          </div>
+
+          <!-- Grafik Komposisi Keuangan -->
+          <div class="bg-white border border-slate-100 rounded-3xl p-4 shadow-card">
+            <h3 class="font-heading font-bold text-sm text-darkNavy mb-2">Visualisasi Alokasi Pendapatan</h3>
+            <div class="h-48">
+              <canvas id="financeDetailChart"></canvas>
+            </div>
+          </div>
+
+          <button onclick="navigateTo('simulasi')" class="w-full py-3.5 bg-emeraldPrimary text-white font-heading font-semibold text-sm rounded-2xl shadow-float flex items-center justify-center gap-2">
+            <span>Lanjut Uji Simulasi Ketahanan</span>
+            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          </button>
+        </section>
+
+        <!-- ======================================== -->
+        <!-- VIEW 3: FITUR 2 - JALANKAN SIMULASI      -->
+        <!-- ======================================== -->
+        <section id="view-simulasi" class="hidden page-section space-y-5">
+          <!-- Shortcut Sub-Fitur Analisis -->
+          <div class="grid grid-cols-2 gap-2.5">
+            <button onclick="navigateTo('risiko')" class="p-3 rounded-2xl bg-red-50 border border-riskRed/20 text-left flex items-center gap-2.5 hover:bg-red-100/70 transition">
+              <div class="w-8 h-8 rounded-xl bg-riskRed text-white flex items-center justify-center shrink-0">
+                <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <span class="font-heading font-bold text-[11px] text-darkNavy block">Risiko Pembiayaan</span>
+                <span class="text-[10px] text-slate-500">Cek beban cicilan</span>
+              </div>
+            </button>
+
+            <button onclick="navigateTo('usaha')" class="p-3 rounded-2xl bg-amber-50 border border-goldAccent/40 text-left flex items-center gap-2.5 hover:bg-amber-100/70 transition">
+              <div class="w-8 h-8 rounded-xl bg-goldAccent text-darkNavy flex items-center justify-center shrink-0">
+                <i data-lucide="store" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <span class="font-heading font-bold text-[11px] text-darkNavy block">Kelayakan Usaha</span>
+                <span class="text-[10px] text-slate-500">Hitung BEP & modal</span>
+              </div>
+            </button>
+          </div>
+
+          <!-- Pengaturan Skenario Simulasi -->
+          <div class="bg-white border border-slate-100 rounded-3xl p-4 shadow-card space-y-4">
+            <div>
+              <h2 class="font-heading font-bold text-base text-darkNavy">Pilih Skenario Ujian Keuangan</h2>
+              <p class="text-xs text-slate-500">Lihat dampak guncangan finansial terhadap arus kas & kewajibanmu.</p>
+            </div>
+
+            <!-- 4 Pilihan Skenario -->
+            <div class="grid grid-cols-2 gap-2.5" id="scenario-type-grid">
+              <button type="button" onclick="selectScenarioType('income_drop')" data-type="income_drop" class="scenario-btn p-3 rounded-2xl border-2 border-emeraldPrimary bg-softMint/60 text-left transition">
+                <i data-lucide="trending-down" class="w-4 h-4 text-emeraldPrimary mb-1.5"></i>
+                <span class="font-heading font-bold text-xs text-darkNavy block">Pendapatan Menurun</span>
+                <span class="text-[10px] text-slate-500">Omzet / uang saku turun</span>
+              </button>
+
+              <button type="button" onclick="selectScenarioType('expense_up')" data-type="expense_up" class="scenario-btn p-3 rounded-2xl border border-slate-200 bg-lightGray text-left transition">
+                <i data-lucide="trending-up" class="w-4 h-4 text-darkNavy mb-1.5"></i>
+                <span class="font-heading font-bold text-xs text-darkNavy block">Pengeluaran Naik</span>
+                <span class="text-[10px] text-slate-500">Inflasi / kebutuhan naik</span>
+              </button>
+
+              <button type="button" onclick="selectScenarioType('emergency')" data-type="emergency" class="scenario-btn p-3 rounded-2xl border border-slate-200 bg-lightGray text-left transition">
+                <i data-lucide="zap" class="w-4 h-4 text-amber-600 mb-1.5"></i>
+                <span class="font-heading font-bold text-xs text-darkNavy block">Pengeluaran Mendadak</span>
+                <span class="text-[10px] text-slate-500">Sakit / gadget rusak</span>
+              </button>
+
+              <button type="button" onclick="selectScenarioType('late_payment')" data-type="late_payment" class="scenario-btn p-3 rounded-2xl border border-slate-200 bg-lightGray text-left transition">
+                <i data-lucide="clock" class="w-4 h-4 text-riskRed mb-1.5"></i>
+                <span class="font-heading font-bold text-xs text-darkNavy block">Terlambat Bayar</span>
+                <span class="text-[10px] text-slate-500">Denda & akumulasi tagihan</span>
+              </button>
+            </div>
+
+            <!-- 3 Tingkat Simulasi -->
+            <div>
+              <label class="block text-xs font-semibold text-darkNavy mb-2">Tingkat Tekanan Simulasi</label>
+              <div class="grid grid-cols-3 bg-lightGray p-1 rounded-xl" id="severity-tabs">
+                <button type="button" onclick="selectSeverity('dasar')" data-sev="dasar" class="sev-btn py-2 text-xs font-semibold rounded-lg bg-white text-darkNavy shadow-xs transition">Dasar</button>
+                <button type="button" onclick="selectSeverity('moderat')" data-sev="moderat" class="sev-btn py-2 text-xs font-medium rounded-lg text-slate-500 transition">Moderat</button>
+                <button type="button" onclick="selectSeverity('berat')" data-sev="berat" class="sev-btn py-2 text-xs font-medium rounded-lg text-slate-500 transition">Berat</button>
+              </div>
+            </div>
+
+            <button onclick="runSimulation()" class="w-full py-3.5 bg-emeraldPrimary hover:bg-emeraldDark text-white font-heading font-semibold text-sm rounded-2xl shadow-float transition active:scale-[0.98] flex items-center justify-center gap-2">
+              <i data-lucide="play" class="w-4 h-4"></i>
+              <span>Jalankan Simulasi Sekarang</span>
+            </button>
+          </div>
+
+          <!-- Hasil Simulasi Sebelum vs Sesudah -->
+          <div class="bg-white border border-slate-100 rounded-3xl p-4 shadow-card space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="font-heading font-bold text-sm text-darkNavy">Perbandingan Sebelum vs Sesudah</h3>
+              <span id="sim-result-badge" class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 text-[11px] font-bold">Waspada</span>
+            </div>
+
+            <div class="h-48 w-full">
+              <canvas id="simulationCompareChart"></canvas>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2.5">
+              <div class="p-3 rounded-2xl bg-lightGray">
+                <span class="text-[10px] text-slate-500 block">Sisa Kas Sebelum</span>
+                <span id="sim-before-cash" class="font-heading font-bold text-sm text-darkNavy">+Rp 1.150.000</span>
+              </div>
+              <div class="p-3 rounded-2xl bg-softMint">
+                <span class="text-[10px] text-slate-600 block">Sisa Kas Sesudah</span>
+                <span id="sim-after-cash" class="font-heading font-bold text-sm text-emeraldPrimary">+Rp 450.000</span>
+              </div>
+            </div>
+
+            <!-- Penjelasan Dampak Edukatif -->
+            <div class="p-3.5 rounded-2xl bg-darkNavy text-white space-y-2">
+              <div class="flex items-center gap-2 text-goldAccent text-xs font-bold">
+                <i data-lucide="info" class="w-4 h-4"></i>
+                <span>Analisis Dampak & Kewajiban</span>
+              </div>
+              <p id="sim-impact-text" class="text-xs text-slate-200 leading-relaxed">
+                Pada skenario pendapatan turun tingkat dasar (-20%), sisa arus kasmu menyusut menjadi Rp 450.000. Kamu masih sanggup membayar cicilan Rp 450.000 tepat waktu, tetapi ruang menabungmu habis.
+              </p>
+            </div>
+
+            <!-- Rekomendasi Pembelajaran Adaptif -->
+            <button onclick="navigateTo('edukasi')" class="w-full py-3 bg-softMint hover:bg-emeraldPrimary/15 text-emeraldPrimary font-heading font-semibold text-xs rounded-2xl transition flex items-center justify-center gap-2">
+              <i data-lucide="book-open" class="w-4 h-4"></i>
+              <span>Pelajari Solusi di Modul Edukasi Adaptif →</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- ======================================== -->
+        <!-- VIEW 4: FITUR 3 - RISIKO PEMBIAYAAN      -->
+        <!-- ======================================== -->
+        <section id="view-risiko" class="hidden page-section space-y-5">
+          <div class="bg-white border border-slate-100 rounded-3xl p-4 shadow-card space-y-3.5">
+            <div>
+              <h2 class="font-heading font-bold text-base text-darkNavy">Identifikasi Risiko Pembiayaan</h2>
+              <p class="text-xs text-slate-500">Evaluasi kemampuan bayar sebelum mengajukan pinjaman atau pembiayaan usaha.</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-darkNavy mb-1">Jumlah Pinjaman (Rp)</label>
+                <input type="number" id="risk-loan" value="6000000" oninput="calculateRisk()" class="w-full px-3 py-2.5 rounded-xl bg-lightGray text-sm font-semibold text-darkNavy outline-none" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-darkNavy mb-1">Margin / Bunga (%/thn)</label>
+                <input type="number" id="risk-rate" value="12" oninput="calculateRisk()" class="w-full px-3 py-2.5 rounded-xl bg-lightGray text-sm font-semibold text-darkNavy outline-none" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-darkNavy mb-1">Tenor (Bulan)</label>
+                <input type="number" id="risk-tenor" value="12" min="1" max="60" oninput="calculateRisk()" class="w-full px-3 py-2.5 rounded-xl bg-lightGray text-sm font-semibold text-darkNavy outline-none" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-darkNavy mb-1">Pendapatan Bulanan (Rp)</label>
+                <input type="number" id="risk-income" value="3500000" oninput="calculateRisk()" class="w-full px-3 py-2.5 rounded-xl bg-lightGray text-sm font-semibold text-darkNavy outline-none" />
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-darkNavy mb-1">Tanggal Jatuh Tempo</label>
+              <input type="text" id="risk-due" value="Setiap tanggal 10" class="w-full px-3 py-2.5 rounded-xl bg-lightGray text-sm font-medium text-darkNavy outline-none" />
+            </div>
+          </div>
+
+          <!-- Indikator Warna Risiko (Hijau / Kuning / Merah) -->
+          <div id="risk-indicator-card" class="rounded-3xl p-5 border-2 transition-all bg-softMint border-emeraldPrimary">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-bold uppercase tracking-wider text-darkNavy">Status Risiko Pembayaran</span>
+              <span id="risk-level-pill" class="px-3 py-1 rounded-full bg-emeraldPrimary text-white text-xs font-bold">
+                HIJAU • RELATIF AMAN
+              </span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 my-3">
+              <div class="bg-white/80 rounded-2xl p-3">
+                <span class="text-[11px] text-slate-500 block">Estimasi Cicilan / Bln</span>
+                <span id="risk-monthly-installment" class="font-heading font-bold text-base text-darkNavy">Rp 560.000</span>
+              </div>
+              <div class="bg-white/80 rounded-2xl p-3">
+                <span class="text-[11px] text-slate-500 block">Total Pengembalian</span>
+                <span id="risk-total-payment" class="font-heading font-bold text-base text-darkNavy">Rp 6.720.000</span>
+              </div>
+            </div>
+
+            <div class="bg-white/80 rounded-2xl p-3 mb-3 flex items-center justify-between">
+              <span class="text-xs font-medium text-darkNavy">Rasio Cicilan terhadap Pendapatan</span>
+              <span id="risk-dsr-val" class="font-heading font-extrabold text-base text-emeraldPrimary">16.0%</span>
+            </div>
+
+            <div class="bg-white/90 rounded-2xl p-3.5 space-y-1.5">
+              <span class="text-xs font-bold text-darkNavy block">Mengapa indikator ini muncul?</span>
+              <p id="risk-explanation" class="text-xs text-slate-700 leading-relaxed">
+                Rasio cicilan sebesar 16,0% masih di bawah batas aman 30% dari pendapatan bulananmu. Potensi kekurangan kas rendah selama pengeluaran rutin tetap terkendali.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================================== -->
+        <!-- VIEW 5: FITUR 4 - KAJI KELAYAKAN USAHA   -->
+        <!-- ======================================== -->
+        <section id="view-usaha" class="hidden page-section space-y-5">
+          <div class="bg-white border border-slate-100 rounded-3xl p-4 shadow-card space-y-3.5">
+            <div>
+              <h2 class="font-heading font-bold text-base text-darkNavy">Simulasi Kelayakan Usaha Muda</h2>
+              <p class="text-xs text-slate-500">Uji kelayakan ide bisnismu sebelum meminjam atau memakai modal tabungan.</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-darkNavy mb-1">Nama Usaha</label>
+                <input type="text" id="biz-name" value="Kopi Kampus Literasi" oninput="calculateBusiness()" class="w-full px-3 py-2.5 rounded-xl bg-lightGray text-xs font-semibold text-darkNavy outline-none" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-darkNavy mb-1">Jenis Usaha</label>
+                <select id="biz-type" onchange="calculateBusiness()" class="w-full px-3 py-2.5 rounded-xl bg-lightGray text-xs font-semibold text-darkNavy outline-none">
+                  <option value="Kuliner & Minuman">Kuliner & Minuman</option>
+                  <option value="Jasa Kreatif / Digital">Jasa Kreatif / Digital</option>
+                  <option value="Retail / Produk Mahasiswa">Retail / Produk</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-darkNavy mb-1">Modal Awal (Rp)</label>
+                <input type="number" id="biz-capital" value="5000000" oninput="calculateBusiness()" class="w-full px-3 py-2.5 rounded-xl bg-lightGray text-sm font-semibold text-darkNavy outline-none" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-darkNavy mb-1">Biaya Tetap / Bln (Rp)</label>
+                <input type="number" id="biz-fixed" value="1500000" oninput="calculateBusiness()" class="w-full px-3 py-2.5 rounded-xl bg-lightGray text-sm font-semibold text-darkNavy outline-none" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2">
+              <div>
+                <label class="block text-[11px] font-semibold text-darkNavy mb-1">Biaya Var/Unit</label>
+                <input type="number" id="biz-var" value="8000" oninput="calculateBusiness()" class="w-full px-2.5 py-2.5 rounded-xl bg-lightGray text-xs font-semibold text-darkNavy outline-none" />
+              </div>
+              <div>
+                <label class="block text-[11px] font-semibold text-darkNavy mb-1">Harga Jual</label>
+                <input type="number" id="biz-price" value="15000" oninput="calculateBusiness()" class="w-full px-2.5 py-2.5 rounded-xl bg-lightGray text-xs font-semibold text-darkNavy outline-none" />
+              </div>
+              <div>
+                <label class="block text-[11px] font-semibold text-darkNavy mb-1">Target Unit/Bln</label>
+                <input type="number" id="biz-target" value="350" oninput="calculateBusiness()" class="w-full px-2.5 py-2.5 rounded-xl bg-lightGray text-xs font-semibold text-darkNavy outline-none" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Ringkasan Kelayakan & BEP -->
+          <div class="bg-darkNavy text-white rounded-3xl p-5 shadow-soft space-y-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <span id="biz-display-name" class="font-heading font-bold text-sm text-goldAccent block">Kopi Kampus Literasi</span>
+                <span class="text-[11px] text-slate-300">Proyeksi Bulanan & Titik Impas</span>
+              </div>
+              <span id="biz-feasible-badge" class="px-3 py-1 rounded-full bg-emeraldPrimary text-xs font-bold">Layak Dijalankan</span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div class="bg-white/10 rounded-2xl p-3">
+                <span class="text-[11px] text-slate-300 block">Estimasi Pendapatan</span>
+                <span id="biz-revenue" class="font-heading font-bold text-sm text-white">Rp 5.250.000</span>
+              </div>
+              <div class="bg-white/10 rounded-2xl p-3">
+                <span class="text-[11px] text-slate-300 block">Estimasi Laba Bersih</span>
+                <span id="biz-profit" class="font-heading font-bold text-sm text-emerald-300">+Rp 950.000</span>
+              </div>
+              <div class="bg-white/10 rounded-2xl p-3">
+                <span class="text-[11px] text-slate-300 block">Titik Impas (BEP Unit)</span>
+                <span id="biz-bep-unit" class="font-heading font-bold text-sm text-goldAccent">215 Unit / Bln</span>
+              </div>
+              <div class="bg-white/10 rounded-2xl p-3">
+                <span class="text-[11px] text-slate-300 block">Balik Modal Awal</span>
+                <span id="biz-payback" class="font-heading font-bold text-sm text-white">± 5,3 Bulan</span>
+              </div>
+            </div>
+
+            <p id="biz-stress-note" class="text-xs text-slate-200 bg-white/5 p-3 rounded-2xl leading-relaxed">
+              Ketahanan Usaha: Jika penjualan turun 20% (280 unit), usaha masih menghasilkan laba tipis Rp 460.000/bulan di atas BEP.
+            </p>
+          </div>
+
+          <!-- Grafik Proyeksi Usaha -->
+          <div class="bg-white border border-slate-100 rounded-3xl p-4 shadow-card">
+            <h3 class="font-heading font-bold text-sm text-darkNavy mb-2">Proyeksi Pendapatan vs Total Biaya</h3>
+            <div class="h-48">
+              <canvas id="businessChart"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================================== -->
+        <!-- VIEW 6: FITUR 5 - PEMBELAJARAN ADAPTIF   -->
+        <!-- ======================================== -->
+        <section id="view-edukasi" class="hidden page-section space-y-5">
+          <!-- Progress Pembelajaran -->
+          <div class="bg-darkNavy text-white rounded-3xl p-5 shadow-soft">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs text-slate-300 font-medium">Progress Literasi Finansial</span>
+              <span id="edu-progress-text" class="text-xs font-bold text-goldAccent">2 / 7 Modul Selesai</span>
+            </div>
+            <div class="w-full h-2.5 bg-white/15 rounded-full overflow-hidden mb-3">
+              <div id="edu-progress-bar" class="h-full bg-emeraldPrimary rounded-full transition-all" style="width: 28%"></div>
+            </div>
+            <div class="bg-white/10 rounded-2xl p-3 flex items-start gap-2.5">
+              <i data-lucide="sparkles" class="w-4 h-4 text-goldAccent shrink-0 mt-0.5"></i>
+              <p id="edu-adaptive-banner" class="text-xs text-slate-200 leading-relaxed">
+                <strong>Rekomendasi Adaptif:</strong> Berdasarkan simulasimu, dana daruratmu baru 1,4 bulan. Prioritaskan modul <em>Dana Darurat</em> & <em>Pengelolaan Cicilan</em>.
+              </p>
+            </div>
+          </div>
+
+          <!-- Filter Kategori -->
+          <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1" id="edu-category-pills">
+            <button onclick="filterEduModules('all')" class="edu-cat-btn px-3.5 py-1.5 rounded-full bg-emeraldPrimary text-white text-xs font-semibold shrink-0">Semua (7)</button>
+            <button onclick="filterEduModules('rekomendasi')" class="edu-cat-btn px-3.5 py-1.5 rounded-full bg-lightGray text-darkNavy text-xs font-semibold shrink-0">Rekomendasi Untukmu</button>
+            <button onclick="filterEduModules('usaha')" class="edu-cat-btn px-3.5 py-1.5 rounded-full bg-lightGray text-darkNavy text-xs font-semibold shrink-0">Modal & Usaha</button>
+          </div>
+
+          <!-- Daftar 7 Modul Pembelajaran -->
+          <div id="edu-modules-list" class="space-y-3"></div>
+
+          <!-- Kuis Interaktif Cepat -->
+          <div class="bg-softMint rounded-3xl p-4 border border-emeraldPrimary/20 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-emeraldPrimary uppercase tracking-wider">Kuis Kilat Ketahanan</span>
+              <span class="text-[11px] font-semibold text-darkNavy">+20 Poin Literasi</span>
+            </div>
+            <h3 class="font-heading font-bold text-sm text-darkNavy" id="quiz-question">
+              Jika pendapatan bulananmu Rp 3.500.000, berapakah batas maksimal total cicilan bulanan yang sehat?
+            </h3>
+            <div class="space-y-2" id="quiz-options">
+              <button onclick="answerQuiz(this, false)" class="w-full text-left p-3 rounded-xl bg-white hover:bg-slate-50 text-xs font-medium text-darkNavy border border-slate-200 transition">
+                A. Rp 1.750.000 (50% dari pendapatan)
+              </button>
+              <button onclick="answerQuiz(this, true)" class="w-full text-left p-3 rounded-xl bg-white hover:bg-slate-50 text-xs font-medium text-darkNavy border border-slate-200 transition">
+                B. Maksimal Rp 1.050.000 (30% dari pendapatan)
+              </button>
+              <button onclick="answerQuiz(this, false)" class="w-full text-left p-3 rounded-xl bg-white hover:bg-slate-50 text-xs font-medium text-darkNavy border border-slate-200 transition">
+                C. Rp 2.500.000 asal masih ada sisa makan
+              </button>
+            </div>
+            <p id="quiz-feedback" class="hidden text-xs font-medium p-3 rounded-xl"></p>
+          </div>
+        </section>
+
+        <!-- ======================================== -->
+        <!-- VIEW 7: FITUR 6 - SAMBUNGKAN KE KOPERASI -->
+        <!-- ======================================== -->
+        <section id="view-koperasi" class="hidden page-section space-y-5">
+          <div class="bg-darkNavy text-white rounded-3xl p-5 shadow-soft">
+            <span class="px-2.5 py-1 rounded-full bg-goldAccent/20 text-goldAccent text-[10px] font-bold uppercase tracking-wider">Pendampingan Terpercaya</span>
+            <h2 class="font-heading font-bold text-lg mt-2">Mitra Koperasi Mahasiswa & UMKM</h2>
+            <p class="text-xs text-slate-300 mt-1 leading-relaxed">
+              Diskusikan hasil simulasimu bersama pendamping koperasi resmi. Data hanya dibagikan jika kamu menyetujuinya secara eksplisit.
+            </p>
+          </div>
+
+          <!-- Daftar Koperasi Mitra -->
+          <div class="space-y-3" id="coop-list"></div>
+
+          <!-- Formulir Konsultasi & Persetujuan Privasi -->
+          <div id="coop-consult-box" class="bg-white border border-slate-100 rounded-3xl p-4 shadow-card space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="font-heading font-bold text-sm text-darkNavy">Ajukan Konsultasi Pendampingan</h3>
+              <span id="selected-coop-tag" class="text-[11px] font-semibold text-emeraldPrimary bg-softMint px-2.5 py-1 rounded-full">Koperasi Mahasiswa Sejahtera</span>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-darkNavy mb-1">Topik Pendampingan</label>
+              <select id="coop-topic" class="w-full px-3.5 py-2.5 rounded-xl bg-lightGray text-xs font-semibold text-darkNavy outline-none">
+                <option value="Perencanaan Modal Usaha Mahasiswa">Perencanaan Modal Usaha Mahasiswa</option>
+                <option value="Penyehatan Arus Kas & Dana Darurat">Penyehatan Arus Kas & Dana Darurat</option>
+                <option value="Simulasi Pembiayaan Mikro Koperasi">Simulasi Pembiayaan Mikro Koperasi</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-darkNavy mb-1">Catatan Singkat</label>
+              <textarea id="coop-notes" rows="2" placeholder="Ceritakan kebutuhan pendampinganmu..." class="w-full px-3.5 py-2.5 rounded-xl bg-lightGray text-xs text-darkNavy outline-none">Ingin konsultasi kelayakan usaha kopi kampus dan simulasi cicilan sehat.</textarea>
+            </div>
+
+            <!-- Ringkasan Data yang Akan Dibagikan -->
+            <div class="bg-lightGray rounded-2xl p-3 space-y-1.5 border border-slate-200/70">
+              <div class="flex items-center gap-1.5 text-xs font-bold text-darkNavy">
+                <i data-lucide="file-check" class="w-4 h-4 text-emeraldPrimary"></i>
+                <span>Ringkasan Rencana Keuanganmu:</span>
+              </div>
+              <p id="coop-share-preview" class="text-[11px] text-slate-600 leading-relaxed">
+                Skor Ketahanan: 76/100 • Sisa Kas: +Rp 1.150.000/bln • Rasio Pengeluaran: 67,1% • Estimasi BEP Usaha: 215 unit.
+              </p>
+            </div>
+
+            <!-- Persetujuan Privasi Eksplisit (Mandatory) -->
+            <label class="flex items-start gap-2.5 p-3 rounded-2xl bg-softMint/70 border border-emeraldPrimary/25 cursor-pointer">
+              <input type="checkbox" id="coop-consent-checkbox" class="mt-0.5 w-4 h-4 accent-emeraldPrimary rounded" />
+              <span class="text-[11px] text-darkNavy leading-relaxed">
+                <strong>Persetujuan Berbagi Data:</strong> Saya menyetujui untuk membagikan <em>ringkasan hasil simulasi di atas</em> kepada koperasi mitra terpilih hanya untuk tujuan konsultasi & pendampingan edukatif.
+              </span>
+            </label>
+
+            <button onclick="submitCoopConsultation()" class="w-full py-3.5 bg-emeraldPrimary hover:bg-emeraldDark text-white font-heading font-semibold text-sm rounded-2xl shadow-float transition active:scale-[0.98] flex items-center justify-center gap-2">
+              <i data-lucide="send" class="w-4 h-4"></i>
+              <span>Kirim Permintaan Pendampingan</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- ======================================== -->
+        <!-- VIEW 8: PROFIL & RIWAYAT                 -->
+        <!-- ======================================== -->
+        <section id="view-profil" class="hidden page-section space-y-5">
+          <!-- Kartu Profil Pengguna -->
+          <div class="bg-white border border-slate-100 rounded-3xl p-5 shadow-card flex items-center gap-4">
+            <div class="w-14 h-14 rounded-2xl bg-emeraldPrimary text-white font-heading font-bold text-xl flex items-center justify-center shadow-soft">
+              NP
+            </div>
+            <div class="flex-1">
+              <h2 id="profile-name-display" class="font-heading font-bold text-base text-darkNavy">Nadia Putri</h2>
+              <p id="profile-role-display" class="text-xs text-slate-500">Mahasiswa • Wirausaha Pemula</p>
+              <span class="inline-block mt-1.5 px-2.5 py-0.5 rounded-full bg-softMint text-emeraldPrimary text-[10px] font-bold">
+                Akun Edukasi Mandiri
+              </span>
+            </div>
+          </div>
+
+          <!-- Riwayat Simulasi -->
+          <div class="bg-white border border-slate-100 rounded-3xl p-4 shadow-card space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="font-heading font-bold text-sm text-darkNavy">Riwayat Simulasi Terakhir</h3>
+              <span class="text-[11px] text-slate-400" id="history-count">2 Simulasi</span>
+            </div>
+            <div id="simulation-history-list" class="space-y-2.5"></div>
+          </div>
+
+          <!-- Riwayat Pembelajaran & Pengaturan -->
+          <div class="bg-white border border-slate-100 rounded-3xl p-4 shadow-card space-y-2">
+            <h3 class="font-heading font-bold text-sm text-darkNavy mb-2">Pengaturan & Transparansi</h3>
+
+            <button onclick="openModal('modal-privacy')" class="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-lightGray transition text-left">
+              <div class="flex items-center gap-3">
+                <i data-lucide="shield" class="w-4 h-4 text-emeraldPrimary"></i>
+                <span class="text-xs font-semibold text-darkNavy">Kebijakan Privasi & Perlindungan Data</span>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+            </button>
+
+            <button onclick="openModal('modal-help')" class="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-lightGray transition text-left">
+              <div class="flex items-center gap-3">
+                <i data-lucide="help-circle" class="w-4 h-4 text-darkNavy"></i>
+                <span class="text-xs font-semibold text-darkNavy">Pusat Bantuan & Disclaimer Edukasi</span>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+            </button>
+
+            <button onclick="navigateTo('koperasi')" class="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-lightGray transition text-left">
+              <div class="flex items-center gap-3">
+                <i data-lucide="handshake" class="w-4 h-4 text-goldAccent"></i>
+                <span class="text-xs font-semibold text-darkNavy">Koneksi Koperasi Mitra</span>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+            </button>
+          </div>
+
+          <!-- Tombol Keluar Akun -->
+          <button onclick="logoutApp()" class="w-full py-3.5 bg-red-50 hover:bg-red-100 text-riskRed font-heading font-semibold text-sm rounded-2xl transition flex items-center justify-center gap-2">
+            <i data-lucide="log-out" class="w-4 h-4"></i>
+            <span>Keluar dari Akun</span>
+          </button>
+        </section>
+
+      </main>
+
+      <!-- ========================================== -->
+      <!-- 4. BOTTOM NAVIGATION (5 MENU UTAMA)        -->
+      <!-- ========================================== -->
+      <nav class="fixed bottom-0 z-30 w-full max-w-[430px] bg-white/95 backdrop-blur-md border-t border-slate-100 px-2 py-2 grid grid-cols-5 items-center shadow-[0_-4px_20px_rgba(0,0,0,0.04)]">
+        <button onclick="navigateTo('home')" data-nav="home" class="nav-item flex flex-col items-center justify-center py-1.5 rounded-xl text-emeraldPrimary transition">
+          <i data-lucide="home" class="w-5 h-5 mb-0.5"></i>
+          <span class="text-[10px] font-bold">Home</span>
+        </button>
+
+        <button onclick="navigateTo('keuangan')" data-nav="keuangan" class="nav-item flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-400 hover:text-darkNavy transition">
+          <i data-lucide="wallet" class="w-5 h-5 mb-0.5"></i>
+          <span class="text-[10px] font-medium">Keuangan</span>
+        </button>
+
+        <button onclick="navigateTo('simulasi')" data-nav="simulasi" class="nav-item flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-400 hover:text-darkNavy transition">
+          <div class="w-10 h-10 -mt-5 rounded-2xl bg-emeraldPrimary text-white flex items-center justify-center shadow-float mb-0.5">
+            <i data-lucide="activity" class="w-5 h-5"></i>
+          </div>
+          <span class="text-[10px] font-semibold text-darkNavy">Simulasi</span>
+        </button>
+
+        <button onclick="navigateTo('edukasi')" data-nav="edukasi" class="nav-item flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-400 hover:text-darkNavy transition">
+          <i data-lucide="book-open" class="w-5 h-5 mb-0.5"></i>
+          <span class="text-[10px] font-medium">Edukasi</span>
+        </button>
+
+        <button onclick="navigateTo('profil')" data-nav="profil" class="nav-item flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-400 hover:text-darkNavy transition">
+          <i data-lucide="user" class="w-5 h-5 mb-0.5"></i>
+          <span class="text-[10px] font-medium">Profil</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 5. MODALS & NOTIFIKASI TOAST               -->
+    <!-- ========================================== -->
+
+    <!-- Modal Notifikasi Edukasi -->
+    <div id="modal-notifications" class="hidden fixed inset-0 z-50 max-w-[430px] mx-auto bg-darkNavy/50 backdrop-blur-xs flex items-end sm:items-center justify-center p-4">
+      <div class="bg-white w-full rounded-3xl p-5 space-y-4 animate-[fadeIn_0.2s_ease-out]">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <button onclick="closeModal('modal-notifications')" class="p-1.5 rounded-xl bg-lightGray text-darkNavy">
+              <i data-lucide="arrow-left" class="w-4 h-4"></i>
+            </button>
+            <h3 class="font-heading font-bold text-base text-darkNavy">Notifikasi Edukasi</h3>
+          </div>
+          <span class="text-[11px] font-semibold text-emeraldPrimary">2 Baru</span>
+        </div>
+
+        <div class="space-y-2.5">
+          <div class="p-3.5 rounded-2xl bg-softMint/70 border border-emeraldPrimary/15">
+            <span class="text-[10px] font-bold text-emeraldPrimary">PENGINGAT SIMULASI</span>
+            <p class="text-xs font-semibold text-darkNavy mt-0.5">Coba uji skenario pengeluaran mendadak!</p>
+            <p class="text-[11px] text-slate-600 mt-0.5">Ketahui berapa bulan dana daruratmu mampu bertahan saat kondisi tak terduga.</p>
+          </div>
+          <div class="p-3.5 rounded-2xl bg-lightGray">
+            <span class="text-[10px] font-bold text-amber-600">TIPS KOPERASI</span>
+            <p class="text-xs font-semibold text-darkNavy mt-0.5">Simpanan sukarela di koperasi melatih disiplin</p>
+            <p class="text-[11px] text-slate-600 mt-0.5">Mulai sisihkan 10% dari sisa arus kasmu secara konsisten.</p>
+          </div>
+        </div>
+
+        <button onclick="closeModal('modal-notifications')" class="w-full py-3 bg-darkNavy text-white font-heading font-semibold text-xs rounded-2xl">
+          Tutup Notifikasi
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal Pusat Bantuan & Disclaimer -->
+    <div id="modal-help" class="hidden fixed inset-0 z-50 max-w-[430px] mx-auto bg-darkNavy/50 backdrop-blur-xs flex items-end sm:items-center justify-center p-4">
+      <div class="bg-white w-full rounded-3xl p-5 space-y-4 max-h-[85vh] overflow-y-auto">
+        <div class="flex items-center gap-2">
+          <button onclick="closeModal('modal-help')" class="p-1.5 rounded-xl bg-lightGray text-darkNavy">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+          </button>
+          <h3 class="font-heading font-bold text-base text-darkNavy">Pusat Bantuan & Transparansi</h3>
+        </div>
+
+        <div class="space-y-3 text-xs text-slate-600 leading-relaxed">
+          <div class="p-3.5 rounded-2xl bg-softMint text-darkNavy">
+            <strong class="block mb-1 text-emeraldPrimary">Apa itu KoperasiLab?</strong>
+            Laboratorium simulasi ketahanan keuangan untuk mahasiswa dan wirausaha muda sebelum mengambil keputusan kredit atau modal usaha.
+          </div>
+          <div class="p-3.5 rounded-2xl bg-lightGray">
+            <strong class="block mb-1 text-darkNavy">Perlindungan Data Pribadi</strong>
+            KoperasiLab tidak terhubung ke rekening bank mana pun. Seluruh angka dimasukkan secara mandiri oleh pengguna dan tidak dibagikan kepada pihak ketiga tanpa persetujuan eksplisit.
+          </div>
+          <div class="p-3.5 rounded-2xl bg-amber-50 text-amber-900 border border-amber-200">
+            <strong class="block mb-1">Disclaimer Edukasi</strong>
+            Hasil perhitungan dan simulasi merupakan sarana pembelajaran literasi finansial, bukan jaminan persetujuan pinjaman atau nasihat investasi profesional.
+          </div>
+        </div>
+
+        <button onclick="closeModal('modal-help')" class="w-full py-3 bg-emeraldPrimary text-white font-heading font-semibold text-xs rounded-2xl">
+          Saya Mengerti
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal Privasi -->
+    <div id="modal-privacy" class="hidden fixed inset-0 z-50 max-w-[430px] mx-auto bg-darkNavy/50 backdrop-blur-xs flex items-end sm:items-center justify-center p-4">
+      <div class="bg-white w-full rounded-3xl p-5 space-y-4">
+        <div class="flex items-center gap-2">
+          <button onclick="closeModal('modal-privacy')" class="p-1.5 rounded-xl bg-lightGray text-darkNavy">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+          </button>
+          <h3 class="font-heading font-bold text-base text-darkNavy">Kebijakan Privasi Data</h3>
+        </div>
+        <ul class="space-y-2 text-xs text-slate-600 list-disc pl-4 leading-relaxed">
+          <li>Tidak ada integrasi otomatis ke rekening bank atau e-wallet.</li>
+          <li>Data keuangan tersimpan lokal selama sesi simulasi berlangsung.</li>
+          <li>Pengiriman data ke koperasi mitra wajib melalui kotak persetujuan khusus.</li>
+        </ul>
+        <button onclick="closeModal('modal-privacy')" class="w-full py-3 bg-darkNavy text-white font-heading font-semibold text-xs rounded-2xl">
+          Kembali
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal Detail Modul / Artikel -->
+    <div id="modal-reader" class="hidden fixed inset-0 z-50 max-w-[430px] mx-auto bg-darkNavy/50 backdrop-blur-xs flex items-end sm:items-center justify-center p-4">
+      <div class="bg-white w-full rounded-3xl p-5 space-y-4 max-h-[85vh] overflow-y-auto">
+        <div class="flex items-center justify-between">
+          <button onclick="closeModal('modal-reader')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-lightGray text-xs font-semibold text-darkNavy">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+            <span>Kembali</span>
+          </button>
+          <span id="reader-tag" class="text-[10px] font-bold uppercase px-2.5 py-1 rounded-full bg-softMint text-emeraldPrimary">Modul Edukasi</span>
+        </div>
+
+        <h3 id="reader-title" class="font-heading font-bold text-lg text-darkNavy leading-snug">Judul Materi</h3>
+        <div id="reader-body" class="text-xs text-slate-600 space-y-3 leading-relaxed"></div>
+
+        <button id="reader-complete-btn" onclick="completeCurrentModule()" class="w-full py-3.5 bg-emeraldPrimary text-white font-heading font-semibold text-xs rounded-2xl shadow-float">
+          Tandai Selesai Dipelajari
+        </button>
+      </div>
+    </div>
+
+    <!-- Toast Feedback -->
+    <div id="toast-box" class="hidden fixed top-20 left-1/2 -translate-x-1/2 z-50 max-w-[380px] w-[90%] bg-darkNavy text-white px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 text-xs font-medium">
+      <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400 shrink-0"></i>
+      <span id="toast-message">Berhasil disimpan!</span>
+    </div>
+
+  </div>
+
+  <!-- ========================================== -->
+  <!-- JAVASCRIPT APPLICATION LOGIC               -->
+  <!-- ========================================== -->
+  <script>
+    // ------------------------------------------
+    // 1. STATE APLIKASI & DATA DUMMY AWAL
+    // ------------------------------------------
+    const appState = {
+      user: {
+        name: 'Nadia Putri',
+        role: 'Mahasiswa',
+        email: 'nadia.mahasiswa@kampus.ac.id'
+      },
+      navStack: ['home'],
+      currentView: 'home',
+      finance: {
+        income: 3500000,
+        expense: 1900000,
+        savings: 3300000,
+        debt: 2700000,
+        installment: 450000,
+        dueDate: 'Tanggal 15'
+      },
+      simulation: {
+        type: 'income_drop',
+        severity: 'dasar',
+        history: [
+          { title: 'Pendapatan Menurun (Dasar)', date: 'Hari ini', status: 'Waspada', delta: '+Rp 450.000' },
+          { title: 'Pengeluaran Mendadak (Moderat)', date: 'Kemarin', status: 'Perlu Dana Darurat', delta: '-Rp 350.000' }
+        ]
+      },
+      selectedCoop: 'Koperasi Mahasiswa Sejahtera',
+      completedModules: [0, 1],
+      activeModuleIndex: null
+    };
+
+    // Data Onboarding
+    const onboardingSlides = [
+      {
+        icon: 'shield-check',
+        badge: 'Laboratorium Finansial Generasi Muda',
+        title: 'Simulasikan Keuanganmu, Siapkan Masa Depanmu.',
+        desc: 'Uji ketahanan arus kas dan rencana modal usahamu dalam lingkungan simulasi yang aman sebelum mengambil keputusan nyata.'
+      },
+      {
+        icon: 'activity',
+        badge: 'Uji Skenario Nyata',
+        title: 'Siap Hadapi Situasi Tak Terduga',
+        desc: 'Pelajari dampak penurunan pendapatan, kenaikan biaya hidup, atau beban cicilan terhadap kesehatan finansialmu.'
+      },
+      {
+        icon: 'handshake',
+        badge: 'Terhubung dengan Koperasi',
+        title: 'Pendampingan Edukatif & Transparan',
+        desc: 'Tanpa akses rekening otomatis. Kamu memegang kendali penuh atas data pribadimu saat berkonsultasi dengan koperasi mitra.'
+      }
+    ];
+    let currentSlide = 0;
+
+    // Data Modul Pembelajaran Adaptif
+    const eduModules = [
+      {
+        id: 0,
+        category: 'dasar',
+        recommended: false,
+        title: 'Dasar Pengelolaan Keuangan Mahasiswa',
+        duration: '3 Menit',
+        summary: 'Memisahkan kebutuhan pokok, kewajiban cicilan, dan tabungan masa depan dengan metode 50-30-20.',
+        infographic: '50% Kebutuhan Utama • 30% Produktivitas & Gaya Hidup • 20% Simpanan & Dana Darurat.',
+        tip: 'Catat arus kas setiap minggu agar kebocoran pengeluaran kecil langsung terdeteksi.'
+      },
+      {
+        id: 1,
+        category: 'dasar',
+        recommended: false,
+        title: 'Pengaturan Pendapatan & Pengeluaran',
+        duration: '4 Menit',
+        summary: 'Strategi menjaga rasio pengeluaran tetap di bawah 70% dari total pendapatan bulanan.',
+        infographic: 'Surplus Arus Kas = Pendapatan Bulanan − (Pengeluaran Rutin + Cicilan).',
+        tip: 'Sisihkan simpanan di awal saat menerima uang saku atau gaji, bukan menunggu sisa akhir bulan.'
+      },
+      {
+        id: 2,
+        category: 'rekomendasi',
+        recommended: true,
+        title: 'Membangun Dana Darurat Bertahap',
+        duration: '3 Menit',
+        summary: 'Mengapa dana darurat minimal 3x pengeluaran bulanan menyelamatkanmu dari utang konsumtif.',
+        infographic: 'Target Awal: 1x Pengeluaran → Target Menengah: 3x Pengeluaran → Target Usaha: 6x.',
+        tip: 'Simpan dana darurat di instrumen terpisah seperti simpanan khusus koperasi agar tidak terpakai belanja.'
+      },
+      {
+        id: 3,
+        category: 'rekomendasi',
+        recommended: true,
+        title: 'Memahami Risiko Pembiayaan',
+        duration: '4 Menit',
+        summary: 'Cara membaca bunga/margin efektif, biaya administrasi, dan risiko denda keterlambatan.',
+        infographic: 'Indikator Hijau (<30%) • Kuning (30%–40%) • Merah (>40% Rasio Cicilan).',
+        tip: 'Jangan pernah mengambil pinjaman baru untuk menutup cicilan lama.'
+      },
+      {
+        id: 4,
+        category: 'rekomendasi',
+        recommended: true,
+        title: 'Pengelolaan Cicilan & Jatuh Tempo',
+        duration: '3 Menit',
+        summary: 'Menyelaraskan tanggal jatuh tempo kewajiban dengan jadwal penerimaan pendapatan.',
+        infographic: 'Atur pengingat H-3 sebelum tanggal jatuh tempo untuk menghindari denda keterlambatan.',
+        tip: 'Prioritaskan pelunasan kewajiban dengan beban biaya paling tinggi terlebih dahulu.'
+      },
+      {
+        id: 5,
+        category: 'usaha',
+        recommended: false,
+        title: 'Perencanaan Modal Usaha Pemula',
+        duration: '5 Menit',
+        summary: 'Membedakan modal investasi awal, modal kerja bulanan, dan dana cadangan operasional.',
+        infographic: 'Modal Aman = Biaya Setup Awal + Minimal 2 Bulan Biaya Tetap Operasional.',
+        tip: 'Mulai dari skala uji pasar (MVP) sebelum menambah kapasitas alat produksi.'
+      },
+      {
+        id: 6,
+        category: 'usaha',
+        recommended: false,
+        title: 'Arus Kas & Titik Impas (BEP)',
+        duration: '4 Menit',
+        summary: 'Menghitung berapa unit produk yang wajib terjual agar usaha tidak mengalami kerugian.',
+        infographic: 'BEP Unit = Biaya Tetap ÷ (Harga Jual per Unit − Biaya Variabel per Unit).',
+        tip: 'Profit di atas kertas belum tentu berarti kas aman jika pembayaran pelanggan tertunda.'
+      }
+    ];
+
+    // Data Koperasi Mitra
+    const partnerCoops = [
+      {
+        name: 'Koperasi Mahasiswa Sejahtera',
+        focus: 'Pendampingan Keuangan Mahasiswa & Inkubasi Bisnis Kampus',
+        location: 'Jawa Timur • Terdaftar Resmi',
+        services: ['Konsultasi Arus Kas Gratis', 'Simpanan Berencana Mahasiswa', 'Klinik Kelayakan Usaha']
+      },
+      {
+        name: 'Koperasi Wirausaha Muda Nusantara',
+        focus: 'Pembiayaan Mikro & Pendampingan UMKM Pemula',
+        location: 'Nasional • Mitra Edukasi',
+        services: ['Review Proposal BEP', 'Akses Modal Bergulir Terukur', 'Mentoring Pembukuan']
+      }
+    ];
+
+    // Chart Instances
+    let homeChart = null;
+    let finDetailChart = null;
+    let simChart = null;
+    let bizChart = null;
+
+    // Helper Format Rupiah
+    function formatRp(num) {
+      const prefix = num < 0 ? '-Rp ' : 'Rp ';
+      return prefix + Math.abs(Math.round(num)).toLocaleString('id-ID');
+    }
+
+    // ------------------------------------------
+    // 2. ONBOARDING & AUTH FLOW
+    // ------------------------------------------
+    function renderOnboarding() {
+      const slide = onboardingSlides[currentSlide];
+      const container = document.getElementById('onboarding-content');
+      container.innerHTML = `
+        <div class="w-20 h-20 rounded-3xl bg-softMint text-emeraldPrimary flex items-center justify-center mx-auto mb-6 shadow-soft">
+          <i data-lucide="${slide.icon}" class="w-10 h-10"></i>
+        </div>
+        <span class="inline-block px-3 py-1 rounded-full bg-softMint text-emeraldPrimary text-xs font-semibold mb-3">
+          ${slide.badge}
+        </span>
+        <h2 class="font-heading font-bold text-2xl text-darkNavy leading-tight mb-3">
+          ${slide.title}
+        </h2>
+        <p class="text-sm text-slate-500 leading-relaxed">
+          ${slide.desc}
+        </p>
+      `;
+
+      const dotsContainer = document.getElementById('onboarding-dots');
+      dotsContainer.innerHTML = onboardingSlides.map((_, idx) => `
+        <span class="h-2 rounded-full transition-all ${idx === currentSlide ? 'w-7 bg-emeraldPrimary' : 'w-2 bg-slate-200'}"></span>
+      `).join('');
+
+      const prevBtn = document.getElementById('onboarding-prev-btn');
+      if (currentSlide > 0) {
+        prevBtn.classList.remove('hidden');
+        prevBtn.classList.add('flex');
+      } else {
+        prevBtn.classList.add('hidden');
+        prevBtn.classList.remove('flex');
+      }
+
+      const nextBtn = document.getElementById('onboarding-next-btn');
+      nextBtn.querySelector('span').textContent = currentSlide === onboardingSlides.length - 1 ? 'Mulai Sekarang' : 'Lanjutkan';
+      lucide.createIcons();
+    }
+
+    function nextOnboardingSlide() {
+      if (currentSlide < onboardingSlides.length - 1) {
+        currentSlide++;
+        renderOnboarding();
+      } else {
+        finishOnboarding();
+      }
+    }
+
+    function prevOnboardingSlide() {
+      if (currentSlide > 0) {
+        currentSlide--;
+        renderOnboarding();
+      }
+    }
+
+    function finishOnboarding() {
+      document.getElementById('screen-onboarding').classList.add('hidden');
+      document.getElementById('screen-auth').classList.remove('hidden');
+    }
+
+    function backToOnboarding() {
+      document.getElementById('screen-auth').classList.add('hidden');
+      document.getElementById('screen-onboarding').classList.remove('hidden');
+      renderOnboarding();
+    }
+
+    function switchAuthMode(mode) {
+      const tabLogin = document.getElementById('tab-login');
+      const tabReg = document.getElementById('tab-register');
+      const nameField = document.getElementById('auth-name-field');
+      const roleField = document.getElementById('auth-role-field');
+      const submitBtn = document.getElementById('auth-submit-btn');
+
+      if (mode === 'register') {
+        tabReg.className = 'py-2.5 text-sm font-semibold rounded-lg bg-white text-darkNavy shadow-xs transition';
+        tabLogin.className = 'py-2.5 text-sm font-medium rounded-lg text-slate-500 transition';
+        nameField.classList.remove('hidden');
+        roleField.classList.remove('hidden');
+        submitBtn.textContent = 'Buat Akun KoperasiLab';
+      } else {
+        tabLogin.className = 'py-2.5 text-sm font-semibold rounded-lg bg-white text-darkNavy shadow-xs transition';
+        tabReg.className = 'py-2.5 text-sm font-medium rounded-lg text-slate-500 transition';
+        nameField.classList.add('hidden');
+        roleField.classList.add('hidden');
+        submitBtn.textContent = 'Masuk ke KoperasiLab';
+      }
+    }
+
+    function handleAuthSubmit(e) {
+      e.preventDefault();
+      const inputName = document.getElementById('auth-name').value.trim();
+      const inputRole = document.getElementById('auth-role').value;
+      if (inputName) appState.user.name = inputName;
+      if (inputRole) appState.user.role = inputRole;
+      enterMainApp();
+    }
+
+    function demoQuickLogin() {
+      appState.user.name = 'Nadia Putri';
+      appState.user.role = 'Mahasiswa';
+      enterMainApp();
+    }
+
+    function enterMainApp() {
+      document.getElementById('screen-onboarding').classList.add('hidden');
+      document.getElementById('screen-auth').classList.add('hidden');
+      document.getElementById('main-app-shell').classList.remove('hidden');
+
+      document.getElementById('home-greeting').textContent = `Halo, ${appState.user.name}! 👋`;
+      document.getElementById('home-role-label').textContent = `${appState.user.role} • Tingkat Pemula`;
+      document.getElementById('profile-name-display').textContent = appState.user.name;
+      document.getElementById('profile-role-display').textContent = `${appState.user.role} • KoperasiLab`;
+
+      initAllDataAndCharts();
+      navigateTo('home', false);
+    }
+
+    function logoutApp() {
+      document.getElementById('main-app-shell').classList.add('hidden');
+      document.getElementById('screen-auth').classList.remove('hidden');
+      appState.navStack = ['home'];
+      showToast('Kamu telah keluar dari akun.');
+    }
+
+    // ------------------------------------------
+    // 3. NAVIGASI & FITUR BACK (RIWAYAT HALAMAN)
+    // ------------------------------------------
+    const viewTitles = {
+      home: { title: 'KoperasiLab', sub: 'Simulasi Keuangan Edukatif' },
+      keuangan: { title: 'Kondisi Keuangan', sub: 'Fitur 1 • Pemetaan Awal' },
+      simulasi: { title: 'Simulasi Ketahanan', sub: 'Fitur 2 • Uji Skenario' },
+      risiko: { title: 'Risiko Pembiayaan', sub: 'Fitur 3 • Analisis Cicilan' },
+      usaha: { title: 'Kelayakan Usaha', sub: 'Fitur 4 • BEP & Proyeksi' },
+      edukasi: { title: 'Edukasi Adaptif', sub: 'Fitur 5 • Literasi Finansial' },
+      koperasi: { title: 'Mitra Koperasi', sub: 'Fitur 6 • Pendampingan' },
+      profil: { title: 'Profil & Riwayat', sub: 'Akun & Transparansi Data' }
+    };
+
+    function navigateTo(viewName, pushHistory = true) {
+      if (pushHistory && appState.currentView !== viewName) {
+        appState.navStack.push(viewName);
+      }
+      appState.currentView = viewName;
+
+      // Hide all sections
+      document.querySelectorAll('#main-content > section').forEach(sec => sec.classList.add('hidden'));
+      const targetSec = document.getElementById(`view-${viewName}`);
+      if (targetSec) targetSec.classList.remove('hidden');
+
+      // Update Top Header & Tombol Back
+      const meta = viewTitles[viewName] || viewTitles.home;
+      document.getElementById('header-title').textContent = meta.title;
+      document.getElementById('header-subtitle').textContent = meta.sub;
+
+      const backBtn = document.getElementById('header-back-btn');
+      const brandLogo = document.getElementById('header-brand-logo');
+      if (viewName !== 'home') {
+        backBtn.classList.remove('hidden');
+        brandLogo.classList.add('hidden');
+      } else {
+        backBtn.classList.add('hidden');
+        brandLogo.classList.remove('hidden');
+      }
+
+      // Update Bottom Nav Active State
+      const navMap = {
+        home: 'home',
+        keuangan: 'keuangan',
+        simulasi: 'simulasi',
+        risiko: 'simulasi',
+        usaha: 'simulasi',
+        edukasi: 'edukasi',
+        koperasi: 'profil',
+        profil: 'profil'
+      };
+      const activeNav = navMap[viewName] || 'home';
+      document.querySelectorAll('.nav-item').forEach(btn => {
+        if (btn.dataset.nav === activeNav) {
+          btn.classList.remove('text-slate-400');
+          btn.classList.add('text-emeraldPrimary');
+        } else {
+          btn.classList.add('text-slate-400');
+          btn.classList.remove('text-emeraldPrimary');
+        }
+      });
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      lucide.createIcons();
+    }
+
+    function goBack() {
+      if (appState.navStack.length > 1) {
+        appState.navStack.pop();
+        const prevView = appState.navStack[appState.navStack.length - 1];
+        navigateTo(prevView, false);
+      } else {
+        navigateTo('home', false);
+      }
+    }
+
+    // ------------------------------------------
+    // 4. PERHITUNGAN KEUANGAN (FITUR 1)
+    // ------------------------------------------
+    function recalculateFinance() {
+      const income = Number(document.getElementById('fin-income').value) || 0;
+      const expense = Number(document.getElementById('fin-expense').value) || 0;
+      const savings = Number(document.getElementById('fin-savings').value) || 0;
+      const debt = Number(document.getElementById('fin-debt').value) || 0;
+      const installment = Number(document.getElementById('fin-installment').value) || 0;
+      const dueDate = document.getElementById('fin-duedate').value;
+
+      appState.finance = { income, expense, savings, debt, installment, dueDate };
+
+      const totalOut = expense + installment;
+      const netCash = income - totalOut;
+      const ratio = income > 0 ? ((totalOut / income) * 100) : 100;
+      const emergencyMonths = totalOut > 0 ? (savings / totalOut) : 0;
+
+      // Hitung Skor Ketahanan (0-100)
+      let score = 50;
+      if (netCash > 0) score += Math.min(25, Math.round((netCash / (income || 1)) * 60));
+      else score -= 20;
+      score += Math.min(25, Math.round(emergencyMonths * 8));
+      score = Math.max(15, Math.min(98, score));
+
+      // Update UI Fitur 1
+      document.getElementById('res-total-expense').textContent = formatRp(totalOut);
+      document.getElementById('res-net-cashflow').textContent = (netCash >= 0 ? '+' : '') + formatRp(netCash);
+      document.getElementById('res-net-cashflow').className = `font-heading font-bold text-base ${netCash >= 0 ? 'text-emerald-300' : 'text-red-300'}`;
+      document.getElementById('res-expense-ratio').textContent = `${ratio.toFixed(1)}%`;
+      document.getElementById('res-expense-bar').style.width = `${Math.min(100, ratio)}%`;
+
+      const badge = document.getElementById('fin-status-badge');
+      if (netCash > 0 && ratio <= 75) {
+        badge.textContent = 'Surplus Sehat';
+        badge.className = 'px-2.5 py-1 rounded-full bg-emeraldPrimary text-[11px] font-semibold';
+      } else if (netCash >= 0) {
+        badge.textContent = 'Arus Kas Ketat';
+        badge.className = 'px-2.5 py-1 rounded-full bg-goldAccent text-darkNavy text-[11px] font-semibold';
+      } else {
+        badge.textContent = 'Defisit Kas';
+        badge.className = 'px-2.5 py-1 rounded-full bg-riskRed text-white text-[11px] font-semibold';
+      }
+
+      document.getElementById('res-fin-summary').textContent =
+        `Sisa arus kasmu ${formatRp(netCash)}/bulan. Simpanan Rp ${savings.toLocaleString('id-ID')} mencukupi ${emergencyMonths.toFixed(1)} bulan kebutuhan rutin.`;
+
+      // Sinkronkan ke Home Dashboard & Simulasi
+      document.getElementById('home-resilience-score').textContent = score;
+      document.getElementById('home-resilience-bar').style.width = `${score}%`;
+      document.getElementById('home-income-val').textContent = formatRp(income);
+      document.getElementById('home-expense-val').textContent = formatRp(totalOut);
+      document.getElementById('home-resilience-badge').textContent = score >= 75 ? 'Cukup Tangguh' : (score >= 50 ? 'Perlu Penguatan' : 'Rentan');
+      document.getElementById('home-resilience-summary').textContent =
+        `Sisa arus kasmu ${netCash >= 0 ? 'positif' : 'defisit'} (${formatRp(netCash)}/bln), dengan dana darurat ${emergencyMonths.toFixed(1)} bulan pengeluaran.`;
+
+      document.getElementById('risk-income').value = income;
+      updateCharts();
+      runSimulation(false);
+      calculateRisk();
+      updateCoopSharePreview();
+    }
+
+    // ------------------------------------------
+    // 5. SIMULASI KETAHANAN (FITUR 2)
+    // ------------------------------------------
+    function selectScenarioType(type) {
+      appState.simulation.type = type;
+      document.querySelectorAll('.scenario-btn').forEach(btn => {
+        if (btn.dataset.type === type) {
+          btn.className = 'scenario-btn p-3 rounded-2xl border-2 border-emeraldPrimary bg-softMint/60 text-left transition';
+        } else {
+          btn.className = 'scenario-btn p-3 rounded-2xl border border-slate-200 bg-lightGray text-left transition';
+        }
+      });
+    }
+
+    function selectSeverity(sev) {
+      appState.simulation.severity = sev;
+      document.querySelectorAll('.sev-btn').forEach(btn => {
+        if (btn.dataset.sev === sev) {
+          btn.className = 'sev-btn py-2 text-xs font-semibold rounded-lg bg-white text-darkNavy shadow-xs transition';
+        } else {
+          btn.className = 'sev-btn py-2 text-xs font-medium rounded-lg text-slate-500 transition';
+        }
+      });
+    }
+
+    function runSimulation(recordHistory = true) {
+      const { income, expense, installment, savings } = appState.finance;
+      const beforeOut = expense + installment;
+      const beforeNet = income - beforeOut;
+
+      const sevFactor = appState.simulation.severity === 'dasar' ? 1 : (appState.simulation.severity === 'moderat' ? 2 : 3);
+      let afterIncome = income;
+      let afterOut = beforeOut;
+      let explanation = '';
+      let scenarioLabel = '';
+
+      if (appState.simulation.type === 'income_drop') {
+        const dropPct = sevFactor === 1 ? 0.20 : (sevFactor === 2 ? 0.35 : 0.50);
+        afterIncome = income * (1 - dropPct);
+        scenarioLabel = `Pendapatan Turun (-${Math.round(dropPct * 100)}%)`;
+        explanation = `Jika pendapatan turun ${Math.round(dropPct * 100)}% menjadi ${formatRp(afterIncome)}, `;
+      } else if (appState.simulation.type === 'expense_up') {
+        const upPct = sevFactor === 1 ? 0.15 : (sevFactor === 2 ? 0.30 : 0.45);
+        afterOut = (expense * (1 + upPct)) + installment;
+        scenarioLabel = `Pengeluaran Naik (+${Math.round(upPct * 100)}%)`;
+        explanation = `Kenaikan biaya rutin sebesar ${Math.round(upPct * 100)}% menaikkan total pengeluaran menjadi ${formatRp(afterOut)}. `;
+      } else if (appState.simulation.type === 'emergency') {
+        const shock = sevFactor === 1 ? 1000000 : (sevFactor === 2 ? 2500000 : 4500000);
+        afterOut = beforeOut + shock;
+        scenarioLabel = `Pengeluaran Mendadak (${formatRp(shock)})`;
+        explanation = `Kebutuhan darurat sebesar ${formatRp(shock)} bulan ini menekan arus kas secara langsung. `;
+      } else {
+        const penalty = sevFactor === 1 ? 150000 : (sevFactor === 2 ? 350000 : 750000);
+        afterOut = beforeOut + penalty + (sevFactor > 1 ? installment * 0.5 : 0);
+        scenarioLabel = `Keterlambatan Bayar`;
+        explanation = `Denda keterlambatan dan akumulasi tagihan menambah beban bulan berikutnya sebesar ${formatRp(afterOut - beforeOut)}. `;
+      }
+
+      const afterNet = afterIncome - afterOut;
+      const badge = document.getElementById('sim-result-badge');
+
+      if (afterNet >= 300000) {
+        badge.textContent = 'Tetap Aman';
+        badge.className = 'px-2.5 py-1 rounded-full bg-softMint text-emeraldPrimary text-[11px] font-bold';
+        explanation += `Sisa kas masih positif (${formatRp(afterNet)}), sehingga cicilan tetap terbayar lancar.`;
+      } else if (afterNet >= 0) {
+        badge.textContent = 'Waspada';
+        badge.className = 'px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 text-[11px] font-bold';
+        explanation += `Sisa kas sangat tipis (${formatRp(afterNet)}). Ruang menabung hilang dan rawan terlambat bayar jika ada biaya tambahan.`;
+      } else {
+        badge.textContent = 'Defisit Kas';
+        badge.className = 'px-2.5 py-1 rounded-full bg-red-100 text-riskRed text-[11px] font-bold';
+        explanation += `Terjadi kekurangan kas ${formatRp(afterNet)}. Kamu harus mengambil dari simpanan (${formatRp(savings)}) untuk menutup kewajiban.`;
+      }
+
+      document.getElementById('sim-before-cash').textContent = (beforeNet >= 0 ? '+' : '') + formatRp(beforeNet);
+      document.getElementById('sim-after-cash').textContent = (afterNet >= 0 ? '+' : '') + formatRp(afterNet);
+      document.getElementById('sim-after-cash').className = `font-heading font-bold text-sm ${afterNet >= 0 ? 'text-emeraldPrimary' : 'text-riskRed'}`;
+      document.getElementById('sim-impact-text').textContent = explanation;
+
+      // Update Grafik Perbandingan Simulasi
+      if (simChart) {
+        simChart.data.datasets[0].data = [income, beforeOut, Math.max(0, beforeNet)];
+        simChart.data.datasets[1].data = [afterIncome, afterOut, Math.max(0, afterNet)];
+        simChart.update();
+      }
+
+      if (recordHistory) {
+        appState.simulation.history.unshift({
+          title: `${scenarioLabel} (${appState.simulation.severity.toUpperCase()})`,
+          date: 'Baru saja',
+          status: afterNet >= 0 ? 'Terkendali' : 'Defisit Kas',
+          delta: (afterNet >= 0 ? '+' : '') + formatRp(afterNet)
+        });
+        renderSimulationHistory();
+        showToast('Simulasi selesai! Cek grafik & dampak di bawah.');
+      }
+    }
+
+    // ------------------------------------------
+    // 6. RISIKO PEMBIAYAAN (FITUR 3)
+    // ------------------------------------------
+    function calculateRisk() {
+      const loan = Number(document.getElementById('risk-loan').value) || 0;
+      const rate = Number(document.getElementById('risk-rate').value) || 0;
+      const tenor = Math.max(1, Number(document.getElementById('risk-tenor').value) || 1);
+      const income = Math.max(1, Number(document.getElementById('risk-income').value) || 1);
+
+      const totalInterest = loan * (rate / 100) * (tenor / 12);
+      const totalPayment = loan + totalInterest;
+      const monthlyInstallment = totalPayment / tenor;
+      const dsr = (monthlyInstallment / income) * 100;
+
+      document.getElementById('risk-monthly-installment').textContent = formatRp(monthlyInstallment);
+      document.getElementById('risk-total-payment').textContent = formatRp(totalPayment);
+      document.getElementById('risk-dsr-val').textContent = `${dsr.toFixed(1)}%`;
+
+      const card = document.getElementById('risk-indicator-card');
+      const pill = document.getElementById('risk-level-pill');
+      const dsrEl = document.getElementById('risk-dsr-val');
+      const expEl = document.getElementById('risk-explanation');
+
+      if (dsr <= 30) {
+        card.className = 'rounded-3xl p-5 border-2 transition-all bg-softMint border-emeraldPrimary';
+        pill.className = 'px-3 py-1 rounded-full bg-emeraldPrimary text-white text-xs font-bold';
+        pill.textContent = 'HIJAU • RELATIF AMAN';
+        dsrEl.className = 'font-heading font-extrabold text-base text-emeraldPrimary';
+        expEl.textContent = `Rasio cicilan ${dsr.toFixed(1)}% berada di batas sehat (≤30% pendapatan). Sisa pendapatan masih cukup untuk kebutuhan pokok dan simpanan.`;
+      } else if (dsr <= 40) {
+        card.className = 'rounded-3xl p-5 border-2 transition-all bg-amber-50 border-goldAccent';
+        pill.className = 'px-3 py-1 rounded-full bg-goldAccent text-darkNavy text-xs font-bold';
+        pill.textContent = 'KUNING • PERLU DIPERHATIKAN';
+        dsrEl.className = 'font-heading font-extrabold text-base text-amber-700';
+        expEl.textContent = `Rasio cicilan ${dsr.toFixed(1)}% mulai membebani arus kas (30%–40%). Pertimbangkan memperpanjang tenor atau memperkecil nominal pinjaman agar tidak terjadi kekurangan kas.`;
+      } else {
+        card.className = 'rounded-3xl p-5 border-2 transition-all bg-red-50 border-riskRed';
+        pill.className = 'px-3 py-1 rounded-full bg-riskRed text-white text-xs font-bold';
+        pill.textContent = 'MERAH • RISIKO TINGGI';
+        dsrEl.className = 'font-heading font-extrabold text-base text-riskRed';
+        expEl.textContent = `Peringatan! Rasio cicilan ${dsr.toFixed(1)}% melebihi 40% pendapatan. Risiko gagal bayar dan kekurangan kas bulanan sangat tinggi.`;
+      }
+    }
+
+    // ------------------------------------------
+    // 7. KELAYAKAN USAHA & BEP (FITUR 4)
+    // ------------------------------------------
+    function calculateBusiness() {
+      const name = document.getElementById('biz-name').value || 'Usaha Baru';
+      const capital = Number(document.getElementById('biz-capital').value) || 0;
+      const fixed = Number(document.getElementById('biz-fixed').value) || 0;
+      const varCost = Number(document.getElementById('biz-var').value) || 0;
+      const price = Number(document.getElementById('biz-price').value) || 0;
+      const target = Number(document.getElementById('biz-target').value) || 0;
+
+      const revenue = price * target;
+      const totalVar = varCost * target;
+      const totalCost = fixed + totalVar;
+      const profit = revenue - totalCost;
+      const marginPerUnit = price - varCost;
+      const bepUnits = marginPerUnit > 0 ? Math.ceil(fixed / marginPerUnit) : 0;
+      const paybackMonths = profit > 0 ? (capital / profit).toFixed(1) : 'Belum Balik Modal';
+
+      document.getElementById('biz-display-name').textContent = name;
+      document.getElementById('biz-revenue').textContent = formatRp(revenue);
+      document.getElementById('biz-profit').textContent = (profit >= 0 ? '+' : '') + formatRp(profit);
+      document.getElementById('biz-profit').className = `font-heading font-bold text-sm ${profit >= 0 ? 'text-emerald-300' : 'text-red-300'}`;
+      document.getElementById('biz-bep-unit').textContent = marginPerUnit > 0 ? `${bepUnits} Unit / Bln` : 'Margin Negatif';
+      document.getElementById('biz-payback').textContent = profit > 0 ? `± ${paybackMonths} Bulan` : 'Rugi Operasional';
+
+      const badge = document.getElementById('biz-feasible-badge');
+      if (profit > 0 && target > bepUnits) {
+        badge.textContent = 'Layak Dijalankan';
+        badge.className = 'px-3 py-1 rounded-full bg-emeraldPrimary text-xs font-bold';
+      } else {
+        badge.textContent = 'Perlu Evaluasi Harga/Biaya';
+        badge.className = 'px-3 py-1 rounded-full bg-riskRed text-xs font-bold';
+      }
+
+      // Uji sensitivitas turun 20%
+      const dropUnits = Math.floor(target * 0.8);
+      const dropProfit = (price - varCost) * dropUnits - fixed;
+      document.getElementById('biz-stress-note').textContent =
+        `Ketahanan Usaha: Jika penjualan turun 20% (${dropUnits} unit/bln), proyeksi laba menjadi ${formatRp(dropProfit)}/bln (${dropProfit >= 0 ? 'masih di atas titik impas' : 'di bawah BEP, perlu dana cadangan'}).`;
+
+      if (bizChart) {
+        bizChart.data.datasets[0].data = [revenue * 0.6, revenue * 0.8, revenue, revenue * 1.15];
+        bizChart.data.datasets[1].data = [
+          fixed + varCost * (target * 0.6),
+          fixed + varCost * (target * 0.8),
+          totalCost,
+          fixed + varCost * (target * 1.15)
+        ];
+        bizChart.update();
+      }
+      updateCoopSharePreview();
+    }
+
+    // ------------------------------------------
+    // 8. PEMBELAJARAN ADAPTIF & KUIS (FITUR 5)
+    // ------------------------------------------
+    function renderEduModules(filter = 'all') {
+      const container = document.getElementById('edu-modules-list');
+      const filtered = eduModules.filter(m => {
+        if (filter === 'rekomendasi') return m.recommended;
+        if (filter === 'usaha') return m.category === 'usaha';
+        return true;
+      });
+
+      container.innerHTML = filtered.map(m => {
+        const isDone = appState.completedModules.includes(m.id);
+        return `
+          <div onclick="openModuleReader(${m.id})" class="p-4 rounded-2xl bg-white border ${m.recommended ? 'border-emeraldPrimary/35' : 'border-slate-100'} shadow-card cursor-pointer hover:border-emeraldPrimary transition">
+            <div class="flex items-center justify-between mb-1.5">
+              <div class="flex items-center gap-1.5">
+                ${m.recommended ? '<span class="px-2 py-0.5 rounded-md bg-softMint text-emeraldPrimary text-[10px] font-bold">Rekomendasi</span>' : ''}
+                <span class="text-[10px] text-slate-400 font-medium">${m.duration}</span>
+              </div>
+              <span class="text-[11px] font-semibold ${isDone ? 'text-emeraldPrimary' : 'text-slate-400'}">
+                ${isDone ? '✓ Selesai' : 'Mulai →'}
+              </span>
+            </div>
+            <h4 class="font-heading font-bold text-xs text-darkNavy">${m.title}</h4>
+            <p class="text-[11px] text-slate-500 mt-1 line-clamp-2">${m.summary}</p>
+          </div>
+        `;
+      }).join('');
+
+      const pct = Math.round((appState.completedModules.length / eduModules.length) * 100);
+      document.getElementById('edu-progress-text').textContent = `${appState.completedModules.length} / ${eduModules.length} Modul Selesai`;
+      document.getElementById('edu-progress-bar').style.width = `${pct}%`;
+    }
+
+    function filterEduModules(cat) {
+      document.querySelectorAll('.edu-cat-btn').forEach(btn => {
+        btn.className = 'edu-cat-btn px-3.5 py-1.5 rounded-full bg-lightGray text-darkNavy text-xs font-semibold shrink-0';
+      });
+      event.target.className = 'edu-cat-btn px-3.5 py-1.5 rounded-full bg-emeraldPrimary text-white text-xs font-semibold shrink-0';
+      renderEduModules(cat);
+    }
+
+    function openModuleReader(id) {
+      const mod = eduModules.find(m => m.id === id);
+      if (!mod) return;
+      appState.activeModuleIndex = id;
+      document.getElementById('reader-tag').textContent = mod.recommended ? 'Rekomendasi Adaptif' : 'Materi Literasi';
+      document.getElementById('reader-title').textContent = mod.title;
+      document.getElementById('reader-body').innerHTML = `
+        <p>${mod.summary}</p>
+        <div class="p-3.5 rounded-2xl bg-softMint border border-emeraldPrimary/20 text-darkNavy">
+          <strong class="block text-emeraldPrimary mb-1">Infografik Ringkas:</strong>
+          <span>${mod.infographic}</span>
+        </div>
+        <div class="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-950">
+          <strong class="block text-amber-700 mb-1">Tips Praktis:</strong>
+          <span>${mod.tip}</span>
+        </div>
+      `;
+      document.getElementById('reader-complete-btn').classList.remove('hidden');
+      openModal('modal-reader');
+    }
+
+    function openArticleModal(idx) {
+      openModuleReader(idx === 0 ? 2 : 3);
+    }
+
+    function completeCurrentModule() {
+      if (appState.activeModuleIndex !== null && !appState.completedModules.includes(appState.activeModuleIndex)) {
+        appState.completedModules.push(appState.activeModuleIndex);
+        renderEduModules('all');
+        showToast('Modul selesai! Progress literasi meningkat.');
+      }
+      closeModal('modal-reader');
+    }
+
+    function answerQuiz(btn, isCorrect) {
+      const fb = document.getElementById('quiz-feedback');
+      fb.classList.remove('hidden');
+      if (isCorrect) {
+        fb.className = 'text-xs font-medium p-3 rounded-xl bg-emeraldPrimary text-white';
+        fb.textContent = 'Tepat sekali! Total cicilan maksimal 30% menjaga arus kasmu tetap aman untuk kebutuhan pokok dan tabungan.';
+      } else {
+        fb.className = 'text-xs font-medium p-3 rounded-xl bg-red-100 text-riskRed';
+        fb.textContent = 'Belum tepat. Batas sehat total cicilan adalah maksimal 30% dari pendapatan bulanan (Rp 1.050.000).';
+      }
+    }
+
+    // ------------------------------------------
+    // 9. KOPERASI MITRA & PERSETUJUAN (FITUR 6)
+    // ------------------------------------------
+    function renderPartnerCoops() {
+      const container = document.getElementById('coop-list');
+      container.innerHTML = partnerCoops.map(c => `
+        <div class="bg-white border border-slate-100 rounded-3xl p-4 shadow-card space-y-2.5">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <h3 class="font-heading font-bold text-sm text-darkNavy">${c.name}</h3>
+              <span class="text-[11px] text-emeraldPrimary font-medium">${c.location}</span>
+            </div>
+            <button onclick="selectCoopForConsult('${c.name}')" class="px-3 py-1.5 rounded-xl bg-softMint hover:bg-emeraldPrimary hover:text-white text-emeraldPrimary text-xs font-semibold transition shrink-0">
+              Pilih
+            </button>
+          </div>
+          <p class="text-xs text-slate-600">${c.focus}</p>
+          <div class="flex flex-wrap gap-1.5 pt-1">
+            ${c.services.map(s => `<span class="px-2.5 py-1 rounded-lg bg-lightGray text-[10px] font-medium text-darkNavy">${s}</span>`).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function selectCoopForConsult(name) {
+      appState.selectedCoop = name;
+      document.getElementById('selected-coop-tag').textContent = name;
+      document.getElementById('coop-consult-box').scrollIntoView({ behavior: 'smooth' });
+      showToast(`Dipilih: ${name}`);
+    }
+
+    function updateCoopSharePreview() {
+      const { income, expense, installment } = appState.finance;
+      const net = income - (expense + installment);
+      const ratio = income > 0 ? (((expense + installment) / income) * 100).toFixed(1) : 0;
+      const bep = document.getElementById('biz-bep-unit')?.textContent || '215 Unit / Bln';
+      const el = document.getElementById('coop-share-preview');
+      if (el) {
+        el.textContent = `Sisa Kas: ${formatRp(net)}/bln • Rasio Pengeluaran: ${ratio}% • Target BEP Usaha: ${bep}.`;
+      }
+    }
+
+    function submitCoopConsultation() {
+      const consent = document.getElementById('coop-consent-checkbox').checked;
+      if (!consent) {
+        showToast('Harap centang persetujuan berbagi data terlebih dahulu.');
+        return;
+      }
+      showToast(`Permintaan pendampingan terkirim ke ${appState.selectedCoop}!`);
+      document.getElementById('coop-consent-checkbox').checked = false;
+    }
+
+    // ------------------------------------------
+    // 10. CHARTS & RIWAYAT
+    // ------------------------------------------
+    function initAllDataAndCharts() {
+      renderEduModules('all');
+      renderPartnerCoops();
+      renderSimulationHistory();
+
+      // 1. Home Cashflow Chart
+      const ctxHome = document.getElementById('homeCashflowChart').getContext('2d');
+      if (homeChart) homeChart.destroy();
+      homeChart = new Chart(ctxHome, {
+        type: 'bar',
+        data: {
+          labels: ['Pendapatan', 'Pengeluaran', 'Cicilan', 'Sisa Kas'],
+          datasets: [{
+            data: [3500000, 1900000, 450000, 1150000],
+            backgroundColor: ['#087F5B', '#142D4E', '#DC5555', '#E5B454'],
+            borderRadius: 10
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, ticks: { font: { size: 10 } }, grid: { color: '#F1F5F9' } },
+            x: { ticks: { font: { size: 10, weight: '600' } }, grid: { display: false } }
+          }
+        }
+      });
+
+      // 2. Finance Detail Doughnut
+      const ctxFin = document.getElementById('financeDetailChart').getContext('2d');
+      if (finDetailChart) finDetailChart.destroy();
+      finDetailChart = new Chart(ctxFin, {
+        type: 'doughnut',
+        data: {
+          labels: ['Pengeluaran Rutin', 'Cicilan', 'Sisa Kas / Tabungan'],
+          datasets: [{
+            data: [1900000, 450000, 1150000],
+            backgroundColor: ['#142D4E', '#DC5555', '#087F5B'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '65%',
+          plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } }
+        }
+      });
+
+      // 3. Simulation Compare Chart
+      const ctxSim = document.getElementById('simulationCompareChart').getContext('2d');
+      if (simChart) simChart.destroy();
+      simChart = new Chart(ctxSim, {
+        type: 'bar',
+        data: {
+          labels: ['Pendapatan', 'Total Keluar', 'Sisa Kas'],
+          datasets: [
+            { label: 'Sebelum', data: [3500000, 2350000, 1150000], backgroundColor: '#142D4E', borderRadius: 8 },
+            { label: 'Sesudah', data: [2800000, 2350000, 450000], backgroundColor: '#087F5B', borderRadius: 8 }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } },
+          scales: {
+            y: { beginAtZero: true, ticks: { font: { size: 10 } } },
+            x: { ticks: { font: { size: 10 } }, grid: { display: false } }
+          }
+        }
+      });
+
+      // 4. Business Projection Chart
+      const ctxBiz = document.getElementById('businessChart').getContext('2d');
+      if (bizChart) bizChart.destroy();
+      bizChart = new Chart(ctxBiz, {
+        type: 'line',
+        data: {
+          labels: ['60% Target', '80% Target', '100% Target', '115% Target'],
+          datasets: [
+            { label: 'Pendapatan', data: [3150000, 4200000, 5250000, 6037500], borderColor: '#087F5B', backgroundColor: 'rgba(8,127,91,0.1)', fill: true, tension: 0.35 },
+            { label: 'Total Biaya', data: [3180000, 3740000, 4300000, 4720000], borderColor: '#DC5555', borderDash: [5, 5], tension: 0.35 }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } },
+          scales: {
+            y: { beginAtZero: true, ticks: { font: { size: 10 } } },
+            x: { ticks: { font: { size: 10 } }, grid: { display: false } }
+          }
+        }
+      });
+
+      recalculateFinance();
+      calculateBusiness();
+    }
+
+    function updateCharts() {
+      const { income, expense, installment } = appState.finance;
+      const net = Math.max(0, income - (expense + installment));
+      if (homeChart) {
+        homeChart.data.datasets[0].data = [income, expense, installment, net];
+        homeChart.update();
+      }
+      if (finDetailChart) {
+        finDetailChart.data.datasets[0].data = [expense, installment, net];
+        finDetailChart.update();
+      }
+    }
+
+    function renderSimulationHistory() {
+      const container = document.getElementById('simulation-history-list');
+      document.getElementById('history-count').textContent = `${appState.simulation.history.length} Simulasi`;
+      container.innerHTML = appState.simulation.history.slice(0, 4).map(item => `
+        <div class="p-3 rounded-2xl bg-lightGray flex items-center justify-between">
+          <div>
+            <span class="font-heading font-semibold text-xs text-darkNavy block">${item.title}</span>
+            <span class="text-[10px] text-slate-400">${item.date} • ${item.status}</span>
+          </div>
+          <span class="font-heading font-bold text-xs ${item.delta.startsWith('-') ? 'text-riskRed' : 'text-emeraldPrimary'}">${item.delta}</span>
+        </div>
+      `).join('');
+    }
+
+    // ------------------------------------------
+    // 11. MODAL & TOAST HELPERS
+    // ------------------------------------------
+    function openModal(id) {
+      document.getElementById(id).classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    let toastTimer = null;
+    function showToast(msg) {
+      const toast = document.getElementById('toast-box');
+      document.getElementById('toast-message').textContent = msg;
+      toast.classList.remove('hidden');
+      lucide.createIcons();
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.add('hidden'), 3000);
+    }
+
+    // Initialize on Window Load
+    window.onload = function () {
+      renderOnboarding();
+      lucide.createIcons();
+    };
+  </script>
+</body>
+</html>
